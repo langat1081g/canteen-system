@@ -3,55 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Login / Sign Up</title>
+<title>Authentication</title>
 
 <style>
-
 body{
-font-family: Arial;
-background: linear-gradient(to right, #4facfe, #00f2fe);
-margin: 0;
+font-family:Arial;
+background:#4facfe;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
 }
 
-.navbar{
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-background: #333;
-padding: 15px;
-text-align:center;
-}
-
-.navbar a{
-color:white;
-margin:15px;
-text-decoration:none;
-}
-
-.main{
-margin-top:80px;
-}
-
-.container{
-width:350px;
-margin:100px auto;
+.box{
 background:white;
 padding:30px;
 border-radius:10px;
-box-shadow:0 0 15px rgba(0,0,0,0.3);
+width:300px;
+text-align:center;
 }
 
-input{
+input,button{
 width:100%;
 padding:10px;
 margin-top:10px;
 }
 
 button{
-width:100%;
-padding:12px;
-margin-top:15px;
 background:#007bff;
 color:white;
 border:none;
@@ -61,39 +40,22 @@ cursor:pointer;
 button:hover{
 background:#0056b3;
 }
-
-.switch{
-text-align:center;
-margin-top:10px;
-cursor:pointer;
-color:blue;
-}
-
 </style>
+
 </head>
 <body>
 
-<div class="navbar">
-<a href="#">Canteen System</a>
-</div>
+<div class="box">
 
-<div class="main">
-
-<div class="container">
-
-<h2 id="title">Login</h2>
+<h2>Login / Sign Up</h2>
 
 <input type="email" id="email" placeholder="Email" required>
 
 <input type="password" id="password" placeholder="Password" required>
 
-<button onclick="handleAuth()" id="authBtn">Login</button>
+<button id="signupBtn">Sign Up</button>
 
-<div class="switch" onclick="toggleMode()" id="switchText">
-Create new account
-</div>
-
-</div>
+<button id="loginBtn">Login</button>
 
 </div>
 
@@ -101,39 +63,35 @@ Create new account
 
 <script>
 
-/* PASTE YOUR SUPABASE VALUES */
-const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
-const SUPABASE_KEY = "PASTE_YOUR_PUBLIC_ANON_KEY_HERE";
-
-const supabase =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+/* CREATE CLIENT */
+const client = window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-let isLogin = true;
+/* AUTO REDIRECT IF ALREADY LOGGED IN */
+async function checkSession(){
 
-function toggleMode(){
+const { data: { session } } =
+await client.auth.getSession();
 
-isLogin = !isLogin;
+if(session){
 
-document.getElementById("title").innerText =
-isLogin ? "Login" : "Create Account";
-
-document.getElementById("authBtn").innerText =
-isLogin ? "Login" : "Sign Up";
-
-document.getElementById("switchText").innerText =
-isLogin ? "Create new account" : "Already have account? Login";
+window.location.href = "menu.html";
 
 }
 
-async function handleAuth(){
+}
 
-let email =
+checkSession();
+
+/* SIGNUP */
+async function signup(){
+
+const email =
 document.getElementById("email").value;
 
-let password =
+const password =
 document.getElementById("password").value;
 
 if(!email || !password){
@@ -143,11 +101,8 @@ return;
 
 }
 
-if(isLogin){
-
-/* LOGIN */
-let { data, error } =
-await supabase.auth.signInWithPassword({
+const { error } =
+await client.auth.signUp({
 
 email,
 password
@@ -160,56 +115,54 @@ alert(error.message);
 
 }else{
 
-localStorage.setItem("studentEmail", email);
+alert("Signup successful. You can login now.");
+
+}
+
+}
+
+/* LOGIN */
+async function login(){
+
+const email =
+document.getElementById("email").value;
+
+const password =
+document.getElementById("password").value;
+
+if(!email || !password){
+
+alert("Enter email and password");
+return;
+
+}
+
+const { error } =
+await client.auth.signInWithPassword({
+
+email,
+password
+
+});
+
+if(error){
+
+alert(error.message);
+
+}else{
 
 alert("Login successful");
 
-window.location.href="menu.html";
-
-}
-
-}else{
-
-/* SIGN UP */
-let { data, error } =
-await supabase.auth.signUp({
-
-email,
-password
-
-});
-
-if(error){
-
-alert(error.message);
-
-}else{
-
-alert("Account created successfully. You can login now.");
-
-toggleMode();
+window.location.href = "menu.html";
 
 }
 
 }
 
-}
+/* CONNECT BUTTONS */
+document.getElementById("signupBtn").onclick = signup;
 
-/* AUTO LOGIN IF SESSION EXISTS */
-async function checkSession(){
-
-let { data } =
-await supabase.auth.getSession();
-
-if(data.session){
-
-window.location.href="menu.html";
-
-}
-
-}
-
-checkSession();
+document.getElementById("loginBtn").onclick = login;
 
 </script>
 
