@@ -160,6 +160,8 @@ SUPABASE_KEY
 );
 
 /* CHECK LOGIN */
+let currentUser = null;
+
 async function checkUser(){
 
 let { data:{ user } } =
@@ -175,14 +177,31 @@ return;
 
 }
 
+currentUser = user;
+
+/* load cart for this user */
+loadCart();
+
 }
 
 checkUser();
 
-/* LOAD CART */
-let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+/* LOAD CART — FIXED */
+let cart = [];
 
+function loadCart(){
+
+cart =
+JSON.parse(
+localStorage.getItem("cart_" + currentUser.id)
+) || [];
+
+updateCartCount();
+displayCart();
+
+}
+
+/* UPDATE COUNT */
 function updateCartCount(){
 
 document.getElementById("cartCount").innerText =
@@ -247,7 +266,7 @@ function removeItem(index){
 cart.splice(index,1);
 
 localStorage.setItem(
-"cart",
+"cart_" + currentUser.id,
 JSON.stringify(cart)
 );
 
@@ -273,16 +292,15 @@ window.location.href="checkout.html";
 /* LOGOUT */
 async function logout(){
 
-await supabase.auth.signOut();
+localStorage.removeItem(
+"cart_" + currentUser.id
+);
 
-localStorage.removeItem("cart");
+await supabase.auth.signOut();
 
 window.location.href="auth.html";
 
 }
-
-updateCartCount();
-displayCart();
 
 </script>
 

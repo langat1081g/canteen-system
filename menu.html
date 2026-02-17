@@ -223,16 +223,43 @@ document.getElementById("studentInfo").innerHTML =
 
 protectPage();
 
-/* CART */
-let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+/* CART — FIXED */
+let cart = [];
 
-function addCart(name,price){
+async function loadCart(){
+
+const { data: { user } } =
+await client.auth.getUser();
+
+if(!user) return;
+
+cart =
+JSON.parse(
+localStorage.getItem("cart_" + user.id)
+) || [];
+
+updateCartCount();
+
+}
+
+async function addCart(name,price){
+
+const { data: { user } } =
+await client.auth.getUser();
+
+if(!user){
+
+alert("Please login first");
+return;
+
+}
 
 cart.push({name,price});
 
-localStorage.setItem("cart",
-JSON.stringify(cart));
+localStorage.setItem(
+"cart_" + user.id,
+JSON.stringify(cart)
+);
 
 updateCartCount();
 
@@ -250,15 +277,23 @@ cart.length;
 /* LOGOUT */
 async function logout(){
 
-await client.auth.signOut();
+const { data: { user } } =
+await client.auth.getUser();
 
-localStorage.removeItem("cart");
+if(user){
+
+localStorage.removeItem("cart_" + user.id);
+
+}
+
+await client.auth.signOut();
 
 window.location.href="auth.html";
 
 }
 
-updateCartCount();
+/* LOAD CART ON PAGE LOAD */
+loadCart();
 
 </script>
 

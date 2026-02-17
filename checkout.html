@@ -150,6 +150,9 @@ const client = window.supabase.createClient(
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
+/* CURRENT USER */
+let currentUser = null;
+
 /* PROTECT PAGE */
 async function protectPage(){
 
@@ -159,17 +162,35 @@ await client.auth.getUser();
 if(!user){
 
 window.location.href="auth.html";
+return;
 
 }
+
+currentUser = user;
+
+/* load cart after user loads */
+loadCart();
 
 }
 
 protectPage();
 
-/* LOAD CART */
-let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+/* LOAD CART — FIXED */
+let cart = [];
 
+function loadCart(){
+
+cart =
+JSON.parse(
+localStorage.getItem("cart_" + currentUser.id)
+) || [];
+
+updateCartCount();
+displaySummary();
+
+}
+
+/* UPDATE COUNT */
 function updateCartCount(){
 
 document.getElementById("cartCount").innerText =
@@ -177,6 +198,7 @@ cart.length;
 
 }
 
+/* DISPLAY SUMMARY */
 function displaySummary(){
 
 let summary =
@@ -209,10 +231,7 @@ async function placeOrder(event){
 
 event.preventDefault();
 
-const { data: { user } } =
-await client.auth.getUser();
-
-if(!user){
+if(!currentUser){
 
 window.location.href="auth.html";
 return;
@@ -242,7 +261,7 @@ await client
 .from("orders")
 .insert([{
 
-user_id: user.id,
+user_id: currentUser.id,
 order_number: orderNumber,
 items: JSON.stringify(cart),
 status:"Waiting"
@@ -256,8 +275,10 @@ return;
 
 }
 
-/* CLEAR CART */
-localStorage.removeItem("cart");
+/* CLEAR CART — FIXED */
+localStorage.removeItem(
+"cart_" + currentUser.id
+);
 
 alert(
 "Order placed!\nQueue Number: "+
@@ -271,14 +292,19 @@ window.location.href="orders.html";
 /* LOGOUT */
 async function logout(){
 
+if(currentUser){
+
+localStorage.removeItem(
+"cart_" + currentUser.id
+);
+
+}
+
 await client.auth.signOut();
 
 window.location.href="auth.html";
 
 }
-
-updateCartCount();
-displaySummary();
 
 </script>
 
