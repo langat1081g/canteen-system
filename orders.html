@@ -90,7 +90,7 @@ border-radius:5px;
 <a href="cart.html">Cart</a>
 <a href="orders.html">My Order</a>
 <a href="track.html">Track Order</a>
-<a href="index.html">Logout</a>
+<a href="#" onclick="logout()">Logout</a>
 
 </div>
 
@@ -112,39 +112,45 @@ border-radius:5px;
 
 <script>
 
-const SUPABASE_URL =
-"https://hbofboaoixzxqzouncyj.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
-
-const supabase =
+const client =
 window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-/* LOAD ORDER FOR AUTH USER */
-async function loadOrder(){
+/* PROTECT PAGE */
+async function protectPage(){
 
-/* GET LOGGED USER */
-let { data: { user } } =
-await supabase.auth.getUser();
+const { data: { user } } =
+await client.auth.getUser();
 
 if(!user){
 
-document.getElementById("orderDetails").innerHTML =
-"Please login first";
-
-window.location.href="index.html";
+window.location.href="auth.html";
 
 return;
 
 }
 
-/* GET USER ORDER */
+}
+
+protectPage();
+
+/* LOAD ORDER */
+async function loadOrder(){
+
+const { data: { user } } =
+await client.auth.getUser();
+
+if(!user){
+
+window.location.href="auth.html";
+return;
+
+}
+
 let { data, error } =
-await supabase
+await client
 .from("orders")
 .select("*")
 .eq("user_id", user.id)
@@ -162,18 +168,15 @@ return;
 
 let order = data[0];
 
-/* GET QUEUE POSITION */
 let { data: queue } =
-await supabase
+await client
 .from("orders")
 .select("order_number")
 .lte("order_number",order.order_number);
 
-let position =
-queue.length - 1;
+let position = queue.length - 1;
 
-let waitTime =
-position * 2;
+let waitTime = position * 2;
 
 let status =
 position===0?"READY":"WAITING";
@@ -192,7 +195,7 @@ ${item.name} - Ksh ${item.price}
 
 });
 
-document.getElementById("orderDetails").innerHTML=`
+document.getElementById("orderDetails").innerHTML = `
 
 <p><strong>Queue Number:</strong>
 ${order.order_number}</p>
@@ -214,6 +217,15 @@ Status: ${status}
 ${itemsHTML}
 
 `;
+
+}
+
+/* LOGOUT */
+async function logout(){
+
+await client.auth.signOut();
+
+window.location.href="auth.html";
 
 }
 

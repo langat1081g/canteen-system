@@ -122,7 +122,9 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <header>Canteen Menu</header>
 
-<div class="student-info" id="studentInfo"></div>
+<div class="student-info" id="studentInfo">
+Loading user...
+</div>
 
 <div class="container">
 
@@ -194,30 +196,21 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <script>
 
-const SUPABASE_URL =
-"https://hbofboaoixzxqzouncyj.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
-
-const supabase =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+/* CREATE CLIENT */
+const client = window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-/* CHECK AUTH SESSION */
-async function checkUser(){
+/* PROTECT PAGE AND LOAD USER */
+async function protectPage(){
 
-let { data:{ user } } =
-await supabase.auth.getUser();
+const { data: { user } } =
+await client.auth.getUser();
 
 if(!user){
 
-alert("Please login first");
-
 window.location.href="auth.html";
-
 return;
 
 }
@@ -228,9 +221,9 @@ document.getElementById("studentInfo").innerHTML =
 
 }
 
-checkUser();
+protectPage();
 
-/* CART SYSTEM */
+/* CART */
 let cart =
 JSON.parse(localStorage.getItem("cart")) || [];
 
@@ -257,7 +250,7 @@ cart.length;
 /* LOGOUT */
 async function logout(){
 
-await supabase.auth.signOut();
+await client.auth.signOut();
 
 localStorage.removeItem("cart");
 

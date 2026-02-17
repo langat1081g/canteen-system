@@ -21,7 +21,6 @@ width: 100%;
 background: #333;
 padding: 15px;
 z-index: 1000;
-box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 text-align:center;
 }
 
@@ -30,10 +29,6 @@ color:white;
 margin:15px;
 text-decoration:none;
 font-weight:bold;
-}
-
-.navbar a:hover{
-color:#00ffcc;
 }
 
 .cart-count{
@@ -86,10 +81,6 @@ cursor:pointer;
 border-radius:5px;
 }
 
-button:hover{
-background:darkgreen;
-}
-
 .summary{
 background:#f1f1f1;
 padding:10px;
@@ -113,7 +104,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <a href="track.html">Track Order</a>
 
-<a href="index.html">Logout</a>
+<a href="#" onclick="logout()">Logout</a>
 
 </div>
 
@@ -154,17 +145,26 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <script>
 
-const SUPABASE_URL =
-"https://hbofboaoixzxqzouncyj.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
-
-const supabase =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+const client = window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
+
+/* PROTECT PAGE */
+async function protectPage(){
+
+const { data: { user } } =
+await client.auth.getUser();
+
+if(!user){
+
+window.location.href="auth.html";
+
+}
+
+}
+
+protectPage();
 
 /* LOAD CART */
 let cart =
@@ -204,26 +204,24 @@ summary.innerHTML = html;
 
 }
 
-/* PLACE ORDER USING AUTH USER */
+/* PLACE ORDER */
 async function placeOrder(event){
 
 event.preventDefault();
 
-/* GET LOGGED USER */
-let { data: { user }, error: userError } =
-await supabase.auth.getUser();
+const { data: { user } } =
+await client.auth.getUser();
 
 if(!user){
 
-alert("Please login first");
-window.location.href="index.html";
+window.location.href="auth.html";
 return;
 
 }
 
 /* GET LAST ORDER NUMBER */
 let { data: lastOrder } =
-await supabase
+await client
 .from("orders")
 .select("order_number")
 .order("order_number",{ascending:false})
@@ -231,7 +229,7 @@ await supabase
 
 let orderNumber = 1;
 
-if(lastOrder.length > 0){
+if(lastOrder && lastOrder.length > 0){
 
 orderNumber =
 lastOrder[0].order_number + 1;
@@ -240,7 +238,7 @@ lastOrder[0].order_number + 1;
 
 /* SAVE ORDER */
 let { error } =
-await supabase
+await client
 .from("orders")
 .insert([{
 
@@ -253,18 +251,13 @@ status:"Waiting"
 
 if(error){
 
-alert("Error saving order");
-console.log(error);
+alert(error.message);
 return;
 
 }
 
+/* CLEAR CART */
 localStorage.removeItem("cart");
-
-localStorage.setItem(
-"lastOrderNumber",
-orderNumber
-);
 
 alert(
 "Order placed!\nQueue Number: "+
@@ -272,6 +265,15 @@ orderNumber
 );
 
 window.location.href="orders.html";
+
+}
+
+/* LOGOUT */
+async function logout(){
+
+await client.auth.signOut();
+
+window.location.href="auth.html";
 
 }
 
