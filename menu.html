@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canteen Menu</title>
+
+<style>
+
+body{
+font-family: Arial;
+margin:0;
+background:#eef2f7;
+}
+
+/* NAVBAR */
+.navbar{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background: #333;
+padding: 15px;
+z-index: 1000;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+.navbar a{
+color:white;
+margin:15px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.navbar a:hover{
+color:#00ffcc;
+}
+
+.cart-count{
+background:red;
+color:white;
+border-radius:50%;
+padding:3px 8px;
+font-size:12px;
+margin-left:5px;
+}
+
+.main{
+margin-top:80px;
+}
+
+header{
+background:#007bff;
+color:white;
+padding:15px;
+text-align:center;
+font-size:24px;
+}
+
+.container{
+padding:20px;
+}
+
+.food-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+}
+
+.food-item{
+background:white;
+border-radius:10px;
+box-shadow:0 4px 8px rgba(0,0,0,0.1);
+padding:15px;
+text-align:center;
+transition:0.3s;
+}
+
+.food-item:hover{
+transform:scale(1.05);
+}
+
+.food-item img{
+width:100%;
+height:150px;
+object-fit:cover;
+border-radius:10px;
+}
+
+button{
+background:#28a745;
+color:white;
+border:none;
+padding:10px;
+margin-top:10px;
+cursor:pointer;
+border-radius:5px;
+}
+
+button:hover{
+background:#218838;
+}
+
+.student-info{
+text-align:center;
+margin-top:10px;
+font-weight:bold;
+color:#333;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+
+<a href="menu.html">Menu</a>
+
+<a href="cart.html">
+Cart <span class="cart-count" id="cartCount">0</span>
+</a>
+
+<a href="orders.html">My Order</a>
+
+<a href="track.html">Track Order</a>
+
+<a href="#" onclick="logout()">Logout</a>
+
+</div>
+
+<div class="main">
+
+<header>Canteen Menu</header>
+
+<div class="student-info" id="studentInfo"></div>
+
+<div class="container">
+
+<h2>Breakfast</h2>
+<div class="food-grid">
+
+<div class="food-item">
+<img src="https://images.unsplash.com/photo-1587731556938-38755b4803a6">
+<h3>Tea</h3>
+<p>Ksh 20</p>
+<button onclick="addCart('Tea',20)">Add to Cart</button>
+</div>
+
+<div class="food-item">
+<img src="https://images.unsplash.com/photo-1604908176997-4311f3c51b63">
+<h3>Mandazi</h3>
+<p>Ksh 15</p>
+<button onclick="addCart('Mandazi',15)">Add to Cart</button>
+</div>
+
+</div>
+
+<h2>Lunch</h2>
+<div class="food-grid">
+
+<div class="food-item">
+<img src="https://images.unsplash.com/photo-1604908554027-3f5e3b1a4a55">
+<h3>Rice & Beans</h3>
+<p>Ksh 100</p>
+<button onclick="addCart('Rice & Beans',100)">Add to Cart</button>
+</div>
+
+<div class="food-item">
+<img src="https://images.unsplash.com/photo-1604908177522-040d5f3c2e67">
+<h3>Ugali & Chicken</h3>
+<p>Ksh 150</p>
+<button onclick="addCart('Ugali & Chicken',150)">Add to Cart</button>
+</div>
+
+</div>
+
+<h2>Drinks</h2>
+<div class="food-grid">
+
+<div class="food-item">
+<img src="https://images.unsplash.com/photo-1581006852262-e4307cf6283a">
+<h3>Soda</h3>
+<p>Ksh 50</p>
+<button onclick="addCart('Soda',50)">Add to Cart</button>
+</div>
+
+<div class="food-item">
+<img src="https://images.unsplash.com/photo-1564419320408-38e24e038739">
+<h3>Water</h3>
+<p>Ksh 30</p>
+<button onclick="addCart('Water',30)">Add to Cart</button>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* CHECK LOGIN */
+let studentReg =
+localStorage.getItem("studentReg");
+
+let studentUsername =
+localStorage.getItem("studentUsername");
+
+if(!studentReg){
+
+alert("Please login first");
+
+window.location.href="index.html";
+
+}
+
+/* SHOW STUDENT INFO */
+document.getElementById("studentInfo").innerHTML =
+"Logged in as: " + studentUsername +
+" (" + studentReg + ")";
+
+/* CART SYSTEM */
+let cart =
+JSON.parse(localStorage.getItem("cart")) || [];
+
+function addCart(name,price){
+
+cart.push({name,price});
+
+localStorage.setItem("cart",
+JSON.stringify(cart));
+
+updateCartCount();
+
+alert(name + " added to cart");
+
+}
+
+function updateCartCount(){
+
+document.getElementById("cartCount").innerText =
+cart.length;
+
+}
+
+function logout(){
+
+localStorage.removeItem("studentReg");
+localStorage.removeItem("studentUsername");
+
+window.location.href="index.html";
+
+}
+
+updateCartCount();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart</title>
+
+<style>
+
+body{
+font-family: Arial;
+margin:0;
+background:#eef2f7;
+}
+
+/* FIXED NAVBAR */
+.navbar{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background: #333;
+padding: 15px;
+z-index: 1000;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+.navbar a{
+color:white;
+margin:15px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.navbar a:hover{
+color:#00ffcc;
+}
+
+.cart-count{
+background:red;
+color:white;
+border-radius:50%;
+padding:3px 8px;
+font-size:12px;
+margin-left:5px;
+}
+
+/* Push content down */
+.main{
+margin-top:80px;
+}
+
+header{
+background:#007bff;
+color:white;
+padding:15px;
+text-align:center;
+font-size:24px;
+}
+
+.container{
+padding:20px;
+max-width:600px;
+margin:auto;
+}
+
+.cart-item{
+background:white;
+padding:15px;
+margin-bottom:10px;
+border-radius:10px;
+box-shadow:0 4px 8px rgba(0,0,0,0.1);
+}
+
+.remove-btn{
+background:red;
+color:white;
+border:none;
+padding:8px;
+cursor:pointer;
+border-radius:5px;
+}
+
+.remove-btn:hover{
+background:darkred;
+}
+
+.checkout-btn{
+background:green;
+margin-top:20px;
+padding:12px;
+width:100%;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:5px;
+font-size:16px;
+}
+
+.checkout-btn:hover{
+background:darkgreen;
+}
+
+.total{
+font-size:22px;
+font-weight:bold;
+margin-top:20px;
+text-align:center;
+}
+
+.empty{
+text-align:center;
+font-size:18px;
+color:gray;
+margin-top:30px;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- FIXED NAVBAR -->
+<div class="navbar">
+
+<a href="menu.html">Menu</a>
+
+<a href="cart.html">
+Cart <span class="cart-count" id="cartCount">0</span>
+</a>
+
+<a href="orders.html">My Order</a>
+
+<a href="track.html">Track Order</a>
+
+<a href="index.html">Logout</a>
+
+</div>
+
+<div class="main">
+
+<header>Your Cart</header>
+
+<div class="container">
+
+<div id="cartList"></div>
+
+<div class="total" id="totalPrice"></div>
+
+<button class="checkout-btn" onclick="checkout()">Proceed to Checkout</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* LOAD CART */
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+/* UPDATE CART COUNT */
+function updateCartCount(){
+document.getElementById("cartCount").innerText = cart.length;
+}
+
+/* DISPLAY CART */
+function displayCart(){
+
+let cartList = document.getElementById("cartList");
+let total = 0;
+
+cartList.innerHTML = "";
+
+if(cart.length === 0){
+
+cartList.innerHTML = "<div class='empty'>Your cart is empty</div>";
+document.getElementById("totalPrice").innerText = "";
+
+return;
+
+}
+
+cart.forEach((item,index)=>{
+
+total += item.price;
+
+cartList.innerHTML += `
+<div class="cart-item">
+<h3>${item.name}</h3>
+<p>Price: Ksh ${item.price}</p>
+<p>Quantity: 1</p>
+<button class="remove-btn" onclick="removeItem(${index})">
+Remove
+</button>
+</div>
+`;
+
+});
+
+document.getElementById("totalPrice").innerText =
+"Total: Ksh " + total;
+
+}
+
+/* REMOVE ITEM */
+function removeItem(index){
+
+cart.splice(index,1);
+
+localStorage.setItem("cart", JSON.stringify(cart));
+
+displayCart();
+updateCartCount();
+
+}
+
+/* CHECKOUT */
+function checkout(){
+
+if(cart.length === 0){
+
+alert("Your cart is empty");
+return;
+
+}
+
+window.location.href = "checkout.html";
+
+}
+
+/* INITIALIZE */
+updateCartCount();
+displayCart();
+
+</script>
+
+</body>
+</html>

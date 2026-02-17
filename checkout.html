@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#eef2f7;
+margin:0;
+}
+
+/* FIXED NAVBAR */
+.navbar{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background: #333;
+padding: 15px;
+z-index: 1000;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+.navbar a{
+color:white;
+margin:15px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.navbar a:hover{
+color:#00ffcc;
+}
+
+.cart-count{
+background:red;
+color:white;
+border-radius:50%;
+padding:3px 8px;
+font-size:12px;
+margin-left:5px;
+}
+
+.main{
+margin-top:80px;
+}
+
+header{
+background:#007bff;
+color:white;
+text-align:center;
+padding:15px;
+font-size:24px;
+}
+
+.container{
+background:white;
+width:90%;
+max-width:400px;
+margin:30px auto;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+label{
+display:block;
+margin-top:10px;
+font-weight:bold;
+}
+
+input, select{
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:20px;
+background:green;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:5px;
+font-size:16px;
+}
+
+button:hover{
+background:darkgreen;
+}
+
+.summary{
+background:#f1f1f1;
+padding:10px;
+border-radius:5px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+
+<a href="menu.html">Menu</a>
+
+<a href="cart.html">
+Cart <span class="cart-count" id="cartCount">0</span>
+</a>
+
+<a href="orders.html">My Order</a>
+
+<a href="track.html">Track Order</a>
+
+<a href="index.html">Logout</a>
+
+</div>
+
+<div class="main">
+
+<header>Checkout</header>
+
+<div class="container">
+
+<h3>Order Summary</h3>
+
+<div id="orderSummary" class="summary"></div>
+
+<form onsubmit="placeOrder(event)">
+
+<label>Student Name</label>
+<input type="text" id="name" required>
+
+<label>Registration Number</label>
+<input type="text" id="reg" required>
+
+<label>Phone Number</label>
+<input type="text" id="phone" required>
+
+<label>Pickup Time</label>
+<input type="time" id="time" required>
+
+<label>Payment Method</label>
+
+<select id="payment" required>
+
+<option value="">Select</option>
+
+<option value="Mpesa">Mpesa</option>
+
+<option value="Cash">Cash</option>
+
+</select>
+
+<button type="submit">Place Order</button>
+
+</form>
+
+</div>
+
+</div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+/* PASTE YOUR SUPABASE VALUES */
+const SUPABASE_URL = "https://hbofboaoixzxqzouncyj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+
+const supabase =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+/* LOAD CART */
+let cart =
+JSON.parse(localStorage.getItem("cart")) || [];
+
+/* UPDATE CART COUNT */
+function updateCartCount(){
+
+document.getElementById("cartCount").innerText =
+cart.length;
+
+}
+
+/* DISPLAY SUMMARY */
+function displaySummary(){
+
+let summary =
+document.getElementById("orderSummary");
+
+if(cart.length === 0){
+
+summary.innerHTML =
+"No items in cart";
+
+return;
+
+}
+
+let total = 0;
+let html = "";
+
+cart.forEach(item=>{
+
+total += item.price;
+
+html +=
+`<p>${item.name} - Ksh ${item.price}</p>`;
+
+});
+
+html +=
+`<hr><strong>Total: Ksh ${total}</strong>`;
+
+summary.innerHTML = html;
+
+}
+
+/* PLACE ORDER */
+async function placeOrder(event){
+
+event.preventDefault();
+
+let name =
+document.getElementById("name").value;
+
+let reg =
+document.getElementById("reg").value;
+
+let phone =
+document.getElementById("phone").value;
+
+let time =
+document.getElementById("time").value;
+
+let payment =
+document.getElementById("payment").value;
+
+if(cart.length === 0){
+
+alert("Cart empty");
+return;
+
+}
+
+try{
+
+/* GET LAST ORDER */
+let { data: lastOrder, error: fetchError } =
+await supabase
+.from("orders")
+.select("order_number")
+.order("order_number", { ascending: false })
+.limit(1);
+
+let newOrderNumber = 1;
+
+if(lastOrder && lastOrder.length > 0){
+
+newOrderNumber =
+lastOrder[0].order_number + 1;
+
+}
+
+/* INSERT ORDER */
+let { error } =
+await supabase
+.from("orders")
+.insert([{
+
+student_reg: reg,
+order_number: newOrderNumber,
+items: JSON.stringify(cart),
+status: "Waiting",
+created_at: new Date()
+
+}]);
+
+if(error){
+
+alert("Error saving order");
+console.log(error);
+return;
+
+}
+
+/* SAVE LOCAL TRACKING */
+localStorage.setItem(
+"lastOrderNumber",
+newOrderNumber
+);
+
+localStorage.setItem(
+"lastRegNumber",
+reg
+);
+
+/* CLEAR CART */
+localStorage.removeItem("cart");
+
+alert(
+"Order placed successfully!\nQueue Number: " +
+newOrderNumber
+);
+
+window.location.href =
+"orders.html";
+
+}catch(err){
+
+alert("Connection error");
+console.log(err);
+
+}
+
+}
+
+/* INITIALIZE */
+updateCartCount();
+displaySummary();
+
+</script>
+
+</body>
+</html>

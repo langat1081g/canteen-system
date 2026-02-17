@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track My Order</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#eef2f7;
+margin:0;
+}
+
+/* NAVBAR */
+.navbar{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background: #333;
+padding: 15px;
+z-index: 1000;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+.navbar a{
+color:white;
+margin:15px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.navbar a:hover{
+color:#00ffcc;
+}
+
+.cart-count{
+background:red;
+color:white;
+border-radius:50%;
+padding:3px 8px;
+font-size:12px;
+margin-left:5px;
+}
+
+.main{
+margin-top:80px;
+}
+
+header{
+background:#28a745;
+color:white;
+text-align:center;
+padding:15px;
+font-size:24px;
+}
+
+.container{
+background:white;
+width:90%;
+max-width:400px;
+margin:30px auto;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+background:#007bff;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:5px;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+.result{
+margin-top:20px;
+font-size:18px;
+}
+
+.ready{
+color:green;
+font-weight:bold;
+}
+
+.wait{
+color:orange;
+font-weight:bold;
+}
+
+.item{
+background:#f1f1f1;
+padding:8px;
+margin-top:5px;
+border-radius:5px;
+}
+
+.note{
+font-size:14px;
+color:gray;
+margin-top:5px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="navbar">
+
+<a href="menu.html">Menu</a>
+
+<a href="cart.html">
+Cart <span class="cart-count" id="cartCount">0</span>
+</a>
+
+<a href="orders.html">My Order</a>
+
+<a href="track.html">Track Order</a>
+
+<a href="index.html">Logout</a>
+
+</div>
+
+<div class="main">
+
+<header>Track My Order</header>
+
+<div class="container">
+
+<label>Enter Queue Number OR Registration Number</label>
+
+<input type="text" id="searchInput"
+placeholder="Example: 5 or REG123">
+
+<div class="note">
+Track using Queue Number or Registration Number
+</div>
+
+<button onclick="trackOrder()">Track Order</button>
+
+<div class="result" id="result"></div>
+
+</div>
+
+</div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+/* PASTE YOUR SUPABASE DETAILS */
+const SUPABASE_URL = "https://hbofboaoixzxqzouncyj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+
+const supabase =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+let cart =
+JSON.parse(localStorage.getItem("cart")) || [];
+
+function updateCartCount(){
+document.getElementById("cartCount").innerText =
+cart.length;
+}
+
+/* TRACK ORDER FROM SUPABASE */
+async function trackOrder(){
+
+let input =
+document.getElementById("searchInput").value.trim();
+
+if(!input) return;
+
+/* CHECK IF NUMBER OR REG */
+let query =
+isNaN(input)
+? supabase.from("orders").select("*").eq("student_reg", input)
+: supabase.from("orders").select("*").eq("order_number", input);
+
+let { data, error } =
+await query.order("order_number", { ascending:false }).limit(1);
+
+if(error || !data || data.length === 0){
+
+document.getElementById("result").innerHTML =
+"<p style='color:red;'>Order not found</p>";
+
+return;
+
+}
+
+let order = data[0];
+
+/* GET QUEUE POSITION */
+let { data: queue } =
+await supabase
+.from("orders")
+.select("order_number")
+.lte("order_number", order.order_number);
+
+let position =
+queue.length - 1;
+
+let waitTime =
+position * 2;
+
+let status =
+position === 0 ? "READY" : "WAITING";
+
+let statusClass =
+position === 0 ? "ready" : "wait";
+
+let items =
+JSON.parse(order.items);
+
+let itemsHTML = "";
+
+items.forEach(item=>{
+itemsHTML += `
+<div class="item">
+${item.name} - Ksh ${item.price}
+</div>`;
+});
+
+document.getElementById("result").innerHTML = `
+
+<p><strong>Registration:</strong>
+${order.student_reg}</p>
+
+<p><strong>Queue Number:</strong>
+${order.order_number}</p>
+
+<p><strong>Students ahead:</strong>
+${position}</p>
+
+<p><strong>Estimated wait time:</strong>
+${waitTime} minutes</p>
+
+<p class="${statusClass}">
+Status: ${status}
+</p>
+
+<p><strong>Items:</strong></p>
+
+${itemsHTML}
+
+`;
+
+}
+
+/* AUTO LOAD LAST ORDER */
+let last =
+localStorage.getItem("studentReg") ||
+localStorage.getItem("lastOrderNumber");
+
+if(last){
+
+document.getElementById("searchInput").value = last;
+trackOrder();
+
+}
+
+/* AUTO REFRESH */
+setInterval(trackOrder,5000);
+
+updateCartCount();
+
+</script>
+
+</body>
+</html>

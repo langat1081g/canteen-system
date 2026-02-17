@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Canteen System - Sign In</title>
+
+<style>
+
+body{
+font-family: Arial;
+background: linear-gradient(to right, #4facfe, #00f2fe);
+margin: 0;
+}
+
+/* FIXED NAVBAR */
+.navbar{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+background: #333;
+padding: 15px;
+z-index: 1000;
+box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+text-align: center;
+}
+
+.navbar a{
+color: white;
+margin: 15px;
+text-decoration: none;
+font-weight: bold;
+}
+
+.navbar a:hover{
+color: #00ffcc;
+}
+
+.main{
+margin-top: 80px;
+}
+
+.container{
+width: 350px;
+margin: 100px auto;
+background: white;
+padding: 30px;
+border-radius: 10px;
+box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+h1, h2{
+text-align: center;
+}
+
+label{
+display: block;
+margin-top: 10px;
+font-weight: bold;
+}
+
+input{
+width: 100%;
+padding: 10px;
+margin-top: 5px;
+border-radius: 5px;
+border: 1px solid #ccc;
+}
+
+button{
+width: 100%;
+padding: 12px;
+margin-top: 20px;
+background: #007bff;
+border: none;
+color: white;
+font-size: 16px;
+cursor: pointer;
+border-radius: 5px;
+}
+
+button:hover{
+background: #0056b3;
+}
+
+.footer{
+text-align:center;
+margin-top:20px;
+color:white;
+}
+
+</style>
+
+</head>
+<body>
+
+<!-- FIXED NAVBAR -->
+<div class="navbar">
+<a href="index.html">Home</a>
+<a href="menu.html">Menu</a>
+<a href="cart.html">Cart</a>
+<a href="orders.html">My Order</a>
+<a href="track.html">Track Order</a>
+</div>
+
+<div class="main">
+
+<div class="container">
+
+<h1>Canteen System</h1>
+<h2>Student Sign In</h2>
+
+<form onsubmit="signIn(event)">
+
+<label>Username</label>
+<input type="text" id="username" required>
+
+<label>Password</label>
+<input type="password" id="password" required>
+
+<label>Confirm Password</label>
+<input type="password" id="confirmPassword" required>
+
+<label>
+<input type="checkbox" required>
+Agree to policy
+</label>
+
+<button type="submit">Sign In / Login</button>
+
+</form>
+
+</div>
+
+<div class="footer">
+<p>Smart Canteen Queue Management System</p>
+</div>
+
+</div>
+
+<!-- SUPABASE SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+/* CONNECT TO SUPABASE */
+const SUPABASE_URL = "https://hbofboaoixzxqzouncyj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+
+const supabase = window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+/* SIGN IN OR LOGIN */
+async function signIn(event){
+
+event.preventDefault();
+
+let username =
+document.getElementById("username").value;
+
+let password =
+document.getElementById("password").value;
+
+let confirmPassword =
+document.getElementById("confirmPassword").value;
+
+if(password !== confirmPassword){
+
+alert("Passwords do not match");
+return;
+
+}
+
+try{
+
+/* CHECK IF USER EXISTS */
+let { data: student, error } =
+await supabase
+.from("students")
+.select("*")
+.eq("username", username)
+.single();
+
+if(student){
+
+/* LOGIN */
+if(student.password === password){
+
+localStorage.setItem(
+"studentReg",
+student.reg_number
+);
+
+localStorage.setItem(
+"studentUsername",
+student.username
+);
+
+alert("Login successful");
+
+window.location.href = "menu.html";
+
+}else{
+
+alert("Incorrect password");
+
+}
+
+}else{
+
+/* CREATE NEW ACCOUNT */
+let reg =
+"REG" + Math.floor(1000 + Math.random()*9000);
+
+let { error: insertError } =
+await supabase
+.from("students")
+.insert([{
+username: username,
+password: password,
+reg_number: reg
+}]);
+
+if(insertError){
+
+alert("Error creating account");
+
+}else{
+
+localStorage.setItem("studentReg", reg);
+localStorage.setItem("studentUsername", username);
+
+alert("Account created successfully\nYour Reg Number: " + reg);
+
+window.location.href = "menu.html";
+
+}
+
+}
+
+}catch(err){
+
+alert("Connection error. Check Supabase setup.");
+
+console.log(err);
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
