@@ -13,7 +13,6 @@ margin:0;
 background:#eef2f7;
 }
 
-/* FIXED NAVBAR */
 .navbar{
 position: fixed;
 top: 0;
@@ -22,7 +21,6 @@ width: 100%;
 background: #333;
 padding: 15px;
 z-index: 1000;
-box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 text-align:center;
 }
 
@@ -46,7 +44,6 @@ font-size:12px;
 margin-left:5px;
 }
 
-/* Push content down */
 .main{
 margin-top:80px;
 }
@@ -82,10 +79,6 @@ cursor:pointer;
 border-radius:5px;
 }
 
-.remove-btn:hover{
-background:darkred;
-}
-
 .checkout-btn{
 background:green;
 margin-top:20px;
@@ -96,10 +89,6 @@ border:none;
 cursor:pointer;
 border-radius:5px;
 font-size:16px;
-}
-
-.checkout-btn:hover{
-background:darkgreen;
 }
 
 .total{
@@ -117,11 +106,9 @@ margin-top:30px;
 }
 
 </style>
-
 </head>
 <body>
 
-<!-- FIXED NAVBAR -->
 <div class="navbar">
 
 <a href="menu.html">Menu</a>
@@ -134,7 +121,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <a href="track.html">Track Order</a>
 
-<a href="index.html">Logout</a>
+<a href="#" onclick="logout()">Logout</a>
 
 </div>
 
@@ -148,34 +135,77 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <div class="total" id="totalPrice"></div>
 
-<button class="checkout-btn" onclick="checkout()">Proceed to Checkout</button>
+<button class="checkout-btn" onclick="checkout()">
+Proceed to Checkout
+</button>
 
 </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-/* LOAD CART */
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+const SUPABASE_URL =
+"https://hbofboaoixzxqzouncyj.supabase.co";
 
-/* UPDATE CART COUNT */
+const SUPABASE_KEY =
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+
+const supabase =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+/* CHECK LOGIN */
+async function checkUser(){
+
+let { data:{ user } } =
+await supabase.auth.getUser();
+
+if(!user){
+
+alert("Please login first");
+
+window.location.href="auth.html";
+
+return;
+
+}
+
+}
+
+checkUser();
+
+/* LOAD CART */
+let cart =
+JSON.parse(localStorage.getItem("cart")) || [];
+
 function updateCartCount(){
-document.getElementById("cartCount").innerText = cart.length;
+
+document.getElementById("cartCount").innerText =
+cart.length;
+
 }
 
 /* DISPLAY CART */
 function displayCart(){
 
-let cartList = document.getElementById("cartList");
+let cartList =
+document.getElementById("cartList");
+
 let total = 0;
 
-cartList.innerHTML = "";
+cartList.innerHTML="";
 
-if(cart.length === 0){
+if(cart.length===0){
 
-cartList.innerHTML = "<div class='empty'>Your cart is empty</div>";
-document.getElementById("totalPrice").innerText = "";
+cartList.innerHTML=
+"<div class='empty'>Your cart is empty</div>";
+
+document.getElementById("totalPrice").innerText="";
 
 return;
 
@@ -183,23 +213,31 @@ return;
 
 cart.forEach((item,index)=>{
 
-total += item.price;
+total+=item.price;
 
-cartList.innerHTML += `
+cartList.innerHTML+=`
+
 <div class="cart-item">
+
 <h3>${item.name}</h3>
+
 <p>Price: Ksh ${item.price}</p>
-<p>Quantity: 1</p>
-<button class="remove-btn" onclick="removeItem(${index})">
+
+<button class="remove-btn"
+onclick="removeItem(${index})">
+
 Remove
+
 </button>
+
 </div>
+
 `;
 
 });
 
-document.getElementById("totalPrice").innerText =
-"Total: Ksh " + total;
+document.getElementById("totalPrice").innerText=
+"Total: Ksh "+total;
 
 }
 
@@ -208,7 +246,10 @@ function removeItem(index){
 
 cart.splice(index,1);
 
-localStorage.setItem("cart", JSON.stringify(cart));
+localStorage.setItem(
+"cart",
+JSON.stringify(cart)
+);
 
 displayCart();
 updateCartCount();
@@ -218,18 +259,28 @@ updateCartCount();
 /* CHECKOUT */
 function checkout(){
 
-if(cart.length === 0){
+if(cart.length===0){
 
 alert("Your cart is empty");
 return;
 
 }
 
-window.location.href = "checkout.html";
+window.location.href="checkout.html";
 
 }
 
-/* INITIALIZE */
+/* LOGOUT */
+async function logout(){
+
+await supabase.auth.signOut();
+
+localStorage.removeItem("cart");
+
+window.location.href="auth.html";
+
+}
+
 updateCartCount();
 displayCart();
 

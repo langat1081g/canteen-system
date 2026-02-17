@@ -13,7 +13,6 @@ background:#eef2f7;
 margin:0;
 }
 
-/* NAVBAR */
 .navbar{
 position: fixed;
 top: 0;
@@ -22,7 +21,6 @@ width: 100%;
 background: #333;
 padding: 15px;
 z-index: 1000;
-box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 text-align:center;
 }
 
@@ -31,10 +29,6 @@ color:white;
 margin:15px;
 text-decoration:none;
 font-weight:bold;
-}
-
-.navbar a:hover{
-color:#00ffcc;
 }
 
 .cart-count{
@@ -68,29 +62,6 @@ border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
-input{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:1px solid #ccc;
-}
-
-button{
-width:100%;
-padding:12px;
-margin-top:15px;
-background:#007bff;
-color:white;
-border:none;
-cursor:pointer;
-border-radius:5px;
-}
-
-button:hover{
-background:#0056b3;
-}
-
 .result{
 margin-top:20px;
 font-size:18px;
@@ -113,12 +84,6 @@ margin-top:5px;
 border-radius:5px;
 }
 
-.note{
-font-size:14px;
-color:gray;
-margin-top:5px;
-}
-
 </style>
 </head>
 <body>
@@ -135,7 +100,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <a href="track.html">Track Order</a>
 
-<a href="index.html">Logout</a>
+<a href="#" onclick="logout()">Logout</a>
 
 </div>
 
@@ -145,31 +110,23 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <div class="container">
 
-<label>Enter Queue Number OR Registration Number</label>
-
-<input type="text" id="searchInput"
-placeholder="Example: 5 or REG123">
-
-<div class="note">
-Track using Queue Number or Registration Number
+<div class="result" id="result">
+Loading your order...
 </div>
-
-<button onclick="trackOrder()">Track Order</button>
-
-<div class="result" id="result"></div>
 
 </div>
 
 </div>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-/* PASTE YOUR SUPABASE DETAILS */
-const SUPABASE_URL = "https://hbofboaoixzxqzouncyj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+const SUPABASE_URL =
+"https://hbofboaoixzxqzouncyj.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
 
 const supabase =
 window.supabase.createClient(
@@ -177,35 +134,40 @@ SUPABASE_URL,
 SUPABASE_KEY
 );
 
+/* UPDATE CART COUNT */
 let cart =
 JSON.parse(localStorage.getItem("cart")) || [];
 
-function updateCartCount(){
 document.getElementById("cartCount").innerText =
 cart.length;
-}
 
-/* TRACK ORDER FROM SUPABASE */
+/* LOAD USER ORDER */
 async function trackOrder(){
 
-let input =
-document.getElementById("searchInput").value.trim();
+/* GET AUTH USER */
+let { data:{ user } } =
+await supabase.auth.getUser();
 
-if(!input) return;
+if(!user){
 
-/* CHECK IF NUMBER OR REG */
-let query =
-isNaN(input)
-? supabase.from("orders").select("*").eq("student_reg", input)
-: supabase.from("orders").select("*").eq("order_number", input);
+window.location.href="auth.html";
+return;
 
+}
+
+/* GET USER ORDER */
 let { data, error } =
-await query.order("order_number", { ascending:false }).limit(1);
+await supabase
+.from("orders")
+.select("*")
+.eq("user_id", user.id)
+.order("order_number",{ascending:false})
+.limit(1);
 
-if(error || !data || data.length === 0){
+if(!data || data.length===0){
 
 document.getElementById("result").innerHTML =
-"<p style='color:red;'>Order not found</p>";
+"No order found";
 
 return;
 
@@ -218,7 +180,7 @@ let { data: queue } =
 await supabase
 .from("orders")
 .select("order_number")
-.lte("order_number", order.order_number);
+.lte("order_number",order.order_number);
 
 let position =
 queue.length - 1;
@@ -227,42 +189,40 @@ let waitTime =
 position * 2;
 
 let status =
-position === 0 ? "READY" : "WAITING";
-
-let statusClass =
-position === 0 ? "ready" : "wait";
+position===0?"READY":"WAITING";
 
 let items =
 JSON.parse(order.items);
 
-let itemsHTML = "";
+let itemsHTML="";
 
 items.forEach(item=>{
-itemsHTML += `
+
+itemsHTML+=`
 <div class="item">
 ${item.name} - Ksh ${item.price}
 </div>`;
+
 });
 
 document.getElementById("result").innerHTML = `
 
-<p><strong>Registration:</strong>
-${order.student_reg}</p>
-
-<p><strong>Queue Number:</strong>
+<p><strong>Your Queue Number:</strong>
 ${order.order_number}</p>
 
 <p><strong>Students ahead:</strong>
 ${position}</p>
 
-<p><strong>Estimated wait time:</strong>
+<p><strong>Estimated wait:</strong>
 ${waitTime} minutes</p>
 
-<p class="${statusClass}">
+<p class="${
+status==="READY"?"ready":"wait"
+}">
 Status: ${status}
 </p>
 
-<p><strong>Items:</strong></p>
+<p><strong>Your Items:</strong></p>
 
 ${itemsHTML}
 
@@ -270,22 +230,19 @@ ${itemsHTML}
 
 }
 
-/* AUTO LOAD LAST ORDER */
-let last =
-localStorage.getItem("studentReg") ||
-localStorage.getItem("lastOrderNumber");
-
-if(last){
-
-document.getElementById("searchInput").value = last;
-trackOrder();
-
-}
-
 /* AUTO REFRESH */
 setInterval(trackOrder,5000);
 
-updateCartCount();
+trackOrder();
+
+/* LOGOUT */
+async function logout(){
+
+await supabase.auth.signOut();
+
+window.location.href="auth.html";
+
+}
 
 </script>
 

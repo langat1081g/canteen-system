@@ -13,7 +13,6 @@ background:#eef2f7;
 margin:0;
 }
 
-/* NAVBAR */
 .navbar{
 position: fixed;
 top: 0;
@@ -22,7 +21,6 @@ width: 100%;
 background: #333;
 padding: 15px;
 z-index: 1000;
-box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 text-align:center;
 }
 
@@ -31,19 +29,6 @@ color:white;
 margin:15px;
 text-decoration:none;
 font-weight:bold;
-}
-
-.navbar a:hover{
-color:#00ffcc;
-}
-
-.cart-count{
-background:red;
-color:white;
-border-radius:50%;
-padding:3px 8px;
-font-size:12px;
-margin-left:5px;
 }
 
 .main{
@@ -81,13 +66,8 @@ font-weight:bold;
 margin-top:15px;
 }
 
-.wait{ color:#ff9800; }
-.ready{ color:green; }
-
-.queue-info{
-margin-top:10px;
-font-size:18px;
-}
+.ready{color:green;}
+.wait{color:#ff9800;}
 
 button{
 width:100%;
@@ -100,10 +80,6 @@ cursor:pointer;
 border-radius:5px;
 }
 
-button:hover{
-background:#0056b3;
-}
-
 </style>
 </head>
 <body>
@@ -111,15 +87,9 @@ background:#0056b3;
 <div class="navbar">
 
 <a href="menu.html">Menu</a>
-
-<a href="cart.html">
-Cart <span class="cart-count" id="cartCount">0</span>
-</a>
-
+<a href="cart.html">Cart</a>
 <a href="orders.html">My Order</a>
-
 <a href="track.html">Track Order</a>
-
 <a href="index.html">Logout</a>
 
 </div>
@@ -138,14 +108,15 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 </div>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-/* PASTE YOUR SUPABASE DETAILS */
-const SUPABASE_URL = "https://hbofboaoixzxqzouncyj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+const SUPABASE_URL =
+"https://hbofboaoixzxqzouncyj.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
 
 const supabase =
 window.supabase.createClient(
@@ -153,47 +124,34 @@ SUPABASE_URL,
 SUPABASE_KEY
 );
 
-/* GET STUDENT REG */
-let studentReg =
-localStorage.getItem("studentReg");
-
-let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
-
-function updateCartCount(){
-document.getElementById("cartCount").innerText =
-cart.length;
-}
-
-/* LOAD ORDER FROM SUPABASE */
+/* LOAD ORDER FOR AUTH USER */
 async function loadOrder(){
 
-if(!studentReg){
+/* GET LOGGED USER */
+let { data: { user } } =
+await supabase.auth.getUser();
+
+if(!user){
 
 document.getElementById("orderDetails").innerHTML =
 "Please login first";
+
+window.location.href="index.html";
+
 return;
 
 }
 
+/* GET USER ORDER */
 let { data, error } =
 await supabase
 .from("orders")
 .select("*")
-.eq("student_reg", studentReg)
-.order("order_number", { ascending:false })
+.eq("user_id", user.id)
+.order("order_number",{ascending:false})
 .limit(1);
 
-if(error){
-
-document.getElementById("orderDetails").innerHTML =
-"Error loading order";
-
-return;
-
-}
-
-if(!data || data.length === 0){
+if(error || !data || data.length===0){
 
 document.getElementById("orderDetails").innerHTML =
 "No order found";
@@ -204,12 +162,12 @@ return;
 
 let order = data[0];
 
-/* GET CURRENT QUEUE POSITION */
+/* GET QUEUE POSITION */
 let { data: queue } =
 await supabase
 .from("orders")
 .select("order_number")
-.lte("order_number", order.order_number);
+.lte("order_number",order.order_number);
 
 let position =
 queue.length - 1;
@@ -218,27 +176,23 @@ let waitTime =
 position * 2;
 
 let status =
-position === 0 ? "READY" : "WAITING";
-
-let statusClass =
-position === 0 ? "ready" : "wait";
+position===0?"READY":"WAITING";
 
 let items =
 JSON.parse(order.items);
 
-let itemsHTML = "";
+let itemsHTML="";
 
 items.forEach(item=>{
-itemsHTML +=
-`<div class="item">
+
+itemsHTML+=`
+<div class="item">
 ${item.name} - Ksh ${item.price}
 </div>`;
+
 });
 
-document.getElementById("orderDetails").innerHTML = `
-
-<p><strong>Registration:</strong>
-${order.student_reg}</p>
+document.getElementById("orderDetails").innerHTML=`
 
 <p><strong>Queue Number:</strong>
 ${order.order_number}</p>
@@ -246,10 +200,12 @@ ${order.order_number}</p>
 <p><strong>Students ahead:</strong>
 ${position}</p>
 
-<p><strong>Estimated wait time:</strong>
+<p><strong>Estimated wait:</strong>
 ${waitTime} minutes</p>
 
-<p class="status ${statusClass}">
+<p class="status ${
+status==="READY"?"ready":"wait"
+}">
 Status: ${status}
 </p>
 
@@ -261,14 +217,15 @@ ${itemsHTML}
 
 }
 
+function goMenu(){
+
+window.location.href="menu.html";
+
+}
+
 /* AUTO REFRESH */
 setInterval(loadOrder,5000);
 
-function goMenu(){
-window.location.href="menu.html";
-}
-
-updateCartCount();
 loadOrder();
 
 </script>

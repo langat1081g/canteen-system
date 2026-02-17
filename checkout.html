@@ -13,7 +13,6 @@ background:#eef2f7;
 margin:0;
 }
 
-/* FIXED NAVBAR */
 .navbar{
 position: fixed;
 top: 0;
@@ -68,16 +67,10 @@ border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
-label{
-display:block;
-margin-top:10px;
-font-weight:bold;
-}
-
 input, select{
 width:100%;
 padding:10px;
-margin-top:5px;
+margin-top:10px;
 border-radius:5px;
 border:1px solid #ccc;
 }
@@ -91,7 +84,6 @@ color:white;
 border:none;
 cursor:pointer;
 border-radius:5px;
-font-size:16px;
 }
 
 button:hover{
@@ -106,11 +98,9 @@ margin-top:10px;
 }
 
 </style>
-
 </head>
 <body>
 
-<!-- NAVBAR -->
 <div class="navbar">
 
 <a href="menu.html">Menu</a>
@@ -139,26 +129,16 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <form onsubmit="placeOrder(event)">
 
-<label>Student Name</label>
-<input type="text" id="name" required>
+<input type="text" id="name" placeholder="Student Name" required>
 
-<label>Registration Number</label>
-<input type="text" id="reg" required>
+<input type="text" id="phone" placeholder="Phone Number" required>
 
-<label>Phone Number</label>
-<input type="text" id="phone" required>
-
-<label>Pickup Time</label>
 <input type="time" id="time" required>
-
-<label>Payment Method</label>
 
 <select id="payment" required>
 
-<option value="">Select</option>
-
+<option value="">Payment Method</option>
 <option value="Mpesa">Mpesa</option>
-
 <option value="Cash">Cash</option>
 
 </select>
@@ -168,17 +148,17 @@ Cart <span class="cart-count" id="cartCount">0</span>
 </form>
 
 </div>
-
 </div>
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-/* PASTE YOUR SUPABASE VALUES */
-const SUPABASE_URL = "https://hbofboaoixzxqzouncyj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+const SUPABASE_URL =
+"https://hbofboaoixzxqzouncyj.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
 
 const supabase =
 window.supabase.createClient(
@@ -190,7 +170,6 @@ SUPABASE_KEY
 let cart =
 JSON.parse(localStorage.getItem("cart")) || [];
 
-/* UPDATE CART COUNT */
 function updateCartCount(){
 
 document.getElementById("cartCount").innerText =
@@ -198,7 +177,6 @@ cart.length;
 
 }
 
-/* DISPLAY SUMMARY */
 function displaySummary(){
 
 let summary =
@@ -208,7 +186,6 @@ if(cart.length === 0){
 
 summary.innerHTML =
 "No items in cart";
-
 return;
 
 }
@@ -217,78 +194,60 @@ let total = 0;
 let html = "";
 
 cart.forEach(item=>{
-
 total += item.price;
-
-html +=
-`<p>${item.name} - Ksh ${item.price}</p>`;
-
+html += `<p>${item.name} - Ksh ${item.price}</p>`;
 });
 
-html +=
-`<hr><strong>Total: Ksh ${total}</strong>`;
+html += `<hr><strong>Total: Ksh ${total}</strong>`;
 
 summary.innerHTML = html;
 
 }
 
-/* PLACE ORDER */
+/* PLACE ORDER USING AUTH USER */
 async function placeOrder(event){
 
 event.preventDefault();
 
-let name =
-document.getElementById("name").value;
+/* GET LOGGED USER */
+let { data: { user }, error: userError } =
+await supabase.auth.getUser();
 
-let reg =
-document.getElementById("reg").value;
+if(!user){
 
-let phone =
-document.getElementById("phone").value;
-
-let time =
-document.getElementById("time").value;
-
-let payment =
-document.getElementById("payment").value;
-
-if(cart.length === 0){
-
-alert("Cart empty");
+alert("Please login first");
+window.location.href="index.html";
 return;
 
 }
 
-try{
-
-/* GET LAST ORDER */
-let { data: lastOrder, error: fetchError } =
+/* GET LAST ORDER NUMBER */
+let { data: lastOrder } =
 await supabase
 .from("orders")
 .select("order_number")
-.order("order_number", { ascending: false })
+.order("order_number",{ascending:false})
 .limit(1);
 
-let newOrderNumber = 1;
+let orderNumber = 1;
 
-if(lastOrder && lastOrder.length > 0){
+if(lastOrder.length > 0){
 
-newOrderNumber =
+orderNumber =
 lastOrder[0].order_number + 1;
 
 }
 
-/* INSERT ORDER */
+/* SAVE ORDER */
 let { error } =
 await supabase
 .from("orders")
 .insert([{
 
-student_reg: reg,
-order_number: newOrderNumber,
+user_id: user.id,
+order_number: orderNumber,
 items: JSON.stringify(cart),
-status: "Waiting",
-created_at: new Date()
+status:"Waiting"
 
 }]);
 
@@ -300,38 +259,22 @@ return;
 
 }
 
-/* SAVE LOCAL TRACKING */
-localStorage.setItem(
-"lastOrderNumber",
-newOrderNumber
-);
-
-localStorage.setItem(
-"lastRegNumber",
-reg
-);
-
-/* CLEAR CART */
 localStorage.removeItem("cart");
 
-alert(
-"Order placed successfully!\nQueue Number: " +
-newOrderNumber
+localStorage.setItem(
+"lastOrderNumber",
+orderNumber
 );
 
-window.location.href =
-"orders.html";
+alert(
+"Order placed!\nQueue Number: "+
+orderNumber
+);
 
-}catch(err){
-
-alert("Connection error");
-console.log(err);
-
-}
+window.location.href="orders.html";
 
 }
 
-/* INITIALIZE */
 updateCartCount();
 displaySummary();
 

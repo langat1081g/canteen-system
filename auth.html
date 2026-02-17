@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Authentication</title>
+
+<style>
+
+body{
+font-family: Arial;
+background: linear-gradient(to right,#4facfe,#00f2fe);
+margin:0;
+}
+
+.container{
+width:350px;
+margin:100px auto;
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:0 0 15px rgba(0,0,0,0.3);
+text-align:center;
+}
+
+.tabs{
+display:flex;
+margin-bottom:20px;
+}
+
+.tab{
+flex:1;
+padding:10px;
+cursor:pointer;
+background:#ddd;
+border:none;
+}
+
+.tab.active{
+background:#007bff;
+color:white;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:15px;
+background:#28a745;
+color:white;
+border:none;
+cursor:pointer;
+border-radius:5px;
+font-size:16px;
+}
+
+button:hover{
+background:#218838;
+}
+
+.title{
+margin-bottom:10px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h2 class="title" id="title">Login</h2>
+
+<div class="tabs">
+
+<button class="tab active" onclick="showLogin()">Login</button>
+
+<button class="tab" onclick="showSignup()">Sign Up</button>
+
+</div>
+
+<input type="email" id="email" placeholder="Email">
+
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="handleAuth()" id="authBtn">Login</button>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://hbofboaoixzxqzouncyj.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
+
+const supabase =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+let isLogin = true;
+
+function showLogin(){
+
+isLogin = true;
+
+document.getElementById("title").innerText = "Login";
+
+document.getElementById("authBtn").innerText = "Login";
+
+document.querySelectorAll(".tab")[0].classList.add("active");
+document.querySelectorAll(".tab")[1].classList.remove("active");
+
+}
+
+function showSignup(){
+
+isLogin = false;
+
+document.getElementById("title").innerText = "Create Account";
+
+document.getElementById("authBtn").innerText = "Sign Up";
+
+document.querySelectorAll(".tab")[1].classList.add("active");
+document.querySelectorAll(".tab")[0].classList.remove("active");
+
+}
+
+async function handleAuth(){
+
+let email =
+document.getElementById("email").value;
+
+let password =
+document.getElementById("password").value;
+
+if(!email || !password){
+
+alert("Enter email and password");
+
+return;
+
+}
+
+if(isLogin){
+
+let { error } =
+await supabase.auth.signInWithPassword({
+
+email,
+password
+
+});
+
+if(error){
+
+alert(error.message);
+
+}else{
+
+alert("Login successful");
+
+window.location.href="menu.html";
+
+}
+
+}else{
+
+let { error } =
+await supabase.auth.signUp({
+
+email,
+password
+
+});
+
+if(error){
+
+alert(error.message);
+
+}else{
+
+alert("Account created successfully. You can login now.");
+
+showLogin();
+
+}
+
+}
+
+}
+
+/* AUTO REDIRECT IF LOGGED IN */
+async function checkSession(){
+
+let { data } =
+await supabase.auth.getSession();
+
+if(data.session){
+
+window.location.href="menu.html";
+
+}
+
+}
+
+checkSession();
+
+</script>
+
+</body>
+</html>

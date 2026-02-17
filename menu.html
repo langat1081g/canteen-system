@@ -13,7 +13,6 @@ margin:0;
 background:#eef2f7;
 }
 
-/* NAVBAR */
 .navbar{
 position: fixed;
 top: 0;
@@ -22,7 +21,6 @@ width: 100%;
 background: #333;
 padding: 15px;
 z-index: 1000;
-box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 text-align:center;
 }
 
@@ -74,11 +72,6 @@ border-radius:10px;
 box-shadow:0 4px 8px rgba(0,0,0,0.1);
 padding:15px;
 text-align:center;
-transition:0.3s;
-}
-
-.food-item:hover{
-transform:scale(1.05);
 }
 
 .food-item img{
@@ -98,15 +91,10 @@ cursor:pointer;
 border-radius:5px;
 }
 
-button:hover{
-background:#218838;
-}
-
 .student-info{
 text-align:center;
 margin-top:10px;
 font-weight:bold;
-color:#333;
 }
 
 </style>
@@ -114,7 +102,6 @@ color:#333;
 </head>
 <body>
 
-<!-- NAVBAR -->
 <div class="navbar">
 
 <a href="menu.html">Menu</a>
@@ -140,6 +127,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 <div class="container">
 
 <h2>Breakfast</h2>
+
 <div class="food-grid">
 
 <div class="food-item">
@@ -159,6 +147,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 </div>
 
 <h2>Lunch</h2>
+
 <div class="food-grid">
 
 <div class="food-item">
@@ -178,6 +167,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 </div>
 
 <h2>Drinks</h2>
+
 <div class="food-grid">
 
 <div class="food-item">
@@ -200,27 +190,45 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 
-/* CHECK LOGIN */
-let studentReg =
-localStorage.getItem("studentReg");
+const SUPABASE_URL =
+"https://hbofboaoixzxqzouncyj.supabase.co";
 
-let studentUsername =
-localStorage.getItem("studentUsername");
+const SUPABASE_KEY =
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
 
-if(!studentReg){
+const supabase =
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+/* CHECK AUTH SESSION */
+async function checkUser(){
+
+let { data:{ user } } =
+await supabase.auth.getUser();
+
+if(!user){
 
 alert("Please login first");
 
-window.location.href="index.html";
+window.location.href="auth.html";
+
+return;
 
 }
 
-/* SHOW STUDENT INFO */
+/* SHOW USER EMAIL */
 document.getElementById("studentInfo").innerHTML =
-"Logged in as: " + studentUsername +
-" (" + studentReg + ")";
+"Logged in as: " + user.email;
+
+}
+
+checkUser();
 
 /* CART SYSTEM */
 let cart =
@@ -246,12 +254,14 @@ cart.length;
 
 }
 
-function logout(){
+/* LOGOUT */
+async function logout(){
 
-localStorage.removeItem("studentReg");
-localStorage.removeItem("studentUsername");
+await supabase.auth.signOut();
 
-window.location.href="index.html";
+localStorage.removeItem("cart");
+
+window.location.href="auth.html";
 
 }
 
