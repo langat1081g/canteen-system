@@ -154,7 +154,7 @@ let currentUser = null;
 let cart = [];
 
 
-/* RELIABLE SESSION HANDLING */
+/* AUTH SESSION */
 client.auth.onAuthStateChange(async (event, session) => {
 
 if(!session){
@@ -171,7 +171,7 @@ loadCart();
 });
 
 
-/* LOAD CART FROM SUPABASE */
+/* LOAD CART */
 async function loadCart(){
 
 const { data, error } =
@@ -179,11 +179,10 @@ await client
 .from("cart")
 .select("*")
 .eq("user_id", currentUser.id)
-.order("created_at", { ascending:true });
+.order("created_at",{ascending:true});
 
 if(error){
 
-console.log(error);
 alert("Error loading cart");
 return;
 
@@ -212,81 +211,85 @@ function displaySummary(){
 let summary =
 document.getElementById("orderSummary");
 
-if(cart.length === 0){
+if(cart.length===0){
 
-summary.innerHTML = "No items in cart";
+summary.innerHTML="No items in cart";
 return;
 
 }
 
-let total = 0;
-let html = "";
+let total=0;
+let html="";
 
 cart.forEach(item=>{
 
-total += item.price;
+total+=item.price;
 
-html += `<p>${item.item_name} - Ksh ${item.price}</p>`;
+html+=`
+<p>${item.item_name} - Ksh ${item.price}</p>
+`;
 
 });
 
-html += `<hr><strong>Total: Ksh ${total}</strong>`;
+html+=`<hr><strong>Total: Ksh ${total}</strong>`;
 
-summary.innerHTML = html;
+summary.innerHTML=html;
 
 }
 
 
-/* PLACE ORDER */
+/* PLACE ORDER (FIXED — NO DUPLICATES EVER) */
 async function placeOrder(event){
 
 event.preventDefault();
 
-if(cart.length === 0){
+if(cart.length===0){
 
-alert("Cart is empty");
+alert("Cart empty");
 return;
 
 }
 
-/* GET NEXT ORDER NUMBER */
-let { data: lastOrder, error: lastError } =
-await client
-.from("orders")
-.select("order_number")
-.order("order_number",{ascending:false})
-.limit(1);
+const name =
+document.getElementById("name").value;
 
-if(lastError){
+const phone =
+document.getElementById("phone").value;
 
-alert("Error generating order number");
-return;
+const time =
+document.getElementById("time").value;
 
-}
-
-let orderNumber = 1;
-
-if(lastOrder.length > 0){
-
-orderNumber = lastOrder[0].order_number + 1;
-
-}
+const payment =
+document.getElementById("payment").value;
 
 
-/* SAVE ORDER */
-let { error } =
+/* INSERT WITHOUT order_number */
+/* Supabase auto-generates order_number */
+let { data, error } =
 await client
 .from("orders")
 .insert([{
 
 user_id: currentUser.id,
-order_number: orderNumber,
-items: JSON.stringify(cart),
-status:"Waiting",
-payment_status:"Pending",
-created_at: new Date()
 
-}]);
+student_name: name,
+
+phone: phone,
+
+pickup_time: time,
+
+payment_method: payment,
+
+items: JSON.stringify(cart),
+
+status: "Waiting",
+
+payment_status: "Pending"
+
+}])
+.select()
+.single();
+
 
 if(error){
 
@@ -304,9 +307,10 @@ await client
 
 
 alert(
-"Order placed successfully!\nQueue Number: " +
-orderNumber
+"Order placed successfully!\nQueue Number: "
++ data.order_number
 );
+
 
 window.location.href="orders.html";
 
