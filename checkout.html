@@ -145,7 +145,7 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <script>
 
-const supabase = window.supabase.createClient(
+const client = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
@@ -154,11 +154,8 @@ let currentUser = null;
 let cart = [];
 
 
-/* INIT PAGE */
-async function init(){
-
-const { data: { session } } =
-await supabase.auth.getSession();
+/* RELIABLE SESSION HANDLING */
+client.auth.onAuthStateChange(async (event, session) => {
 
 if(!session){
 
@@ -171,22 +168,22 @@ currentUser = session.user;
 
 loadCart();
 
-}
-
-init();
+});
 
 
 /* LOAD CART FROM SUPABASE */
 async function loadCart(){
 
 const { data, error } =
-await supabase
+await client
 .from("cart")
 .select("*")
-.eq("user_id", currentUser.id);
+.eq("user_id", currentUser.id)
+.order("created_at", { ascending:true });
 
 if(error){
 
+console.log(error);
 alert("Error loading cart");
 return;
 
@@ -252,34 +249,42 @@ return;
 
 }
 
-/* GET LAST ORDER NUMBER */
-let { data: lastOrder } =
-await supabase
+/* GET NEXT ORDER NUMBER */
+let { data: lastOrder, error: lastError } =
+await client
 .from("orders")
 .select("order_number")
 .order("order_number",{ascending:false})
 .limit(1);
 
+if(lastError){
+
+alert("Error generating order number");
+return;
+
+}
+
 let orderNumber = 1;
 
-if(lastOrder && lastOrder.length > 0){
+if(lastOrder.length > 0){
 
-orderNumber =
-lastOrder[0].order_number + 1;
+orderNumber = lastOrder[0].order_number + 1;
 
 }
 
 
 /* SAVE ORDER */
 let { error } =
-await supabase
+await client
 .from("orders")
 .insert([{
 
 user_id: currentUser.id,
 order_number: orderNumber,
 items: JSON.stringify(cart),
-status:"Waiting"
+status:"Waiting",
+payment_status:"Pending",
+created_at: new Date()
 
 }]);
 
@@ -291,15 +296,15 @@ return;
 }
 
 
-/* DELETE CART FROM SUPABASE */
-await supabase
+/* CLEAR CART */
+await client
 .from("cart")
 .delete()
 .eq("user_id", currentUser.id);
 
 
 alert(
-"Order placed!\nQueue Number: " +
+"Order placed successfully!\nQueue Number: " +
 orderNumber
 );
 
@@ -311,7 +316,7 @@ window.location.href="orders.html";
 /* LOGOUT */
 async function logout(){
 
-await supabase.auth.signOut();
+await client.auth.signOut();
 
 window.location.href="auth.html";
 

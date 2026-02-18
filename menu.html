@@ -91,6 +91,10 @@ cursor:pointer;
 border-radius:5px;
 }
 
+button:hover{
+background:#218838;
+}
+
 .student-info{
 text-align:center;
 margin-top:10px;
@@ -196,24 +200,19 @@ Loading user...
 
 <script>
 
-/* CREATE CLIENT */
-const supabase = window.supabase.createClient(
+const client = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
 let currentUser = null;
 
+/* FIXED AUTH HANDLING */
+client.auth.onAuthStateChange(async (event, session) => {
 
-/* INIT PAGE */
-async function init(){
+if(!session){
 
-const { data: { session }, error } =
-await supabase.auth.getSession();
-
-if(error || !session){
-
-window.location.href="auth.html";
+window.location.href = "auth.html";
 return;
 
 }
@@ -225,12 +224,9 @@ document.getElementById("studentInfo").innerHTML =
 "Logged in as: " + currentUser.email;
 
 /* LOAD CART COUNT */
-await loadCartCount();
+loadCartCount();
 
-}
-
-init();
-
+});
 
 /* LOAD CART COUNT */
 async function loadCartCount(){
@@ -238,9 +234,9 @@ async function loadCartCount(){
 if(!currentUser) return;
 
 const { data, error } =
-await supabase
+await client
 .from("cart")
-.select("id")
+.select("*")
 .eq("user_id", currentUser.id);
 
 if(error){
@@ -255,7 +251,6 @@ data.length;
 
 }
 
-
 /* ADD TO CART */
 async function addCart(name,price){
 
@@ -267,12 +262,14 @@ return;
 }
 
 const { error } =
-await supabase
+await client
 .from("cart")
 .insert([{
+
 user_id: currentUser.id,
 item_name: name,
 price: price
+
 }]);
 
 if(error){
@@ -282,17 +279,16 @@ return;
 
 }
 
-await loadCartCount();
+loadCartCount();
 
 alert(name + " added to cart");
 
 }
 
-
 /* LOGOUT */
 async function logout(){
 
-await supabase.auth.signOut();
+await client.auth.signOut();
 
 window.location.href="auth.html";
 

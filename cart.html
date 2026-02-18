@@ -147,7 +147,7 @@ Proceed to Checkout
 
 <script>
 
-const supabase = window.supabase.createClient(
+const client = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
@@ -155,11 +155,8 @@ const supabase = window.supabase.createClient(
 let currentUser = null;
 let cart = [];
 
-/* INIT PAGE */
-async function init(){
-
-const { data: { session } } =
-await supabase.auth.getSession();
+/* FIXED AUTH HANDLING */
+client.auth.onAuthStateChange(async (event, session) => {
 
 if(!session){
 
@@ -170,25 +167,25 @@ return;
 
 currentUser = session.user;
 
-/* LOAD CART FROM SUPABASE */
+/* LOAD CART */
 loadCart();
 
-}
-
-init();
+});
 
 
-/* LOAD CART ITEMS */
+/* LOAD CART FROM SUPABASE */
 async function loadCart(){
 
 const { data, error } =
-await supabase
+await client
 .from("cart")
 .select("*")
-.eq("user_id", currentUser.id);
+.eq("user_id", currentUser.id)
+.order("created_at", { ascending: true });
 
 if(error){
 
+console.log(error);
 alert("Error loading cart");
 return;
 
@@ -219,14 +216,14 @@ document.getElementById("cartList");
 
 let total = 0;
 
-cartList.innerHTML="";
+cartList.innerHTML = "";
 
-if(cart.length===0){
+if(cart.length === 0){
 
 cartList.innerHTML =
 "<div class='empty'>Your cart is empty</div>";
 
-document.getElementById("totalPrice").innerText="";
+document.getElementById("totalPrice").innerText = "";
 
 return;
 
@@ -266,10 +263,18 @@ document.getElementById("totalPrice").innerText =
 /* REMOVE ITEM */
 async function removeItem(id){
 
-await supabase
+const { error } =
+await client
 .from("cart")
 .delete()
 .eq("id", id);
+
+if(error){
+
+alert("Error removing item");
+return;
+
+}
 
 loadCart();
 
@@ -279,7 +284,7 @@ loadCart();
 /* CHECKOUT */
 function checkout(){
 
-if(cart.length===0){
+if(cart.length === 0){
 
 alert("Your cart is empty");
 return;
@@ -294,7 +299,7 @@ window.location.href="checkout.html";
 /* LOGOUT */
 async function logout(){
 
-await supabase.auth.signOut();
+await client.auth.signOut();
 
 window.location.href="auth.html";
 
