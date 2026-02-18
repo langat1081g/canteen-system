@@ -6,6 +6,7 @@
 <title>Checkout</title>
 
 <style>
+
 body{
 font-family: Arial;
 background:#eef2f7;
@@ -19,7 +20,6 @@ left: 0;
 width: 100%;
 background: #333;
 padding: 15px;
-z-index: 1000;
 text-align:center;
 }
 
@@ -36,35 +36,18 @@ color:white;
 border-radius:50%;
 padding:3px 8px;
 font-size:12px;
-margin-left:5px;
 }
 
-.main{ margin-top:80px; }
-
-header{
-background:#007bff;
-color:white;
-text-align:center;
-padding:15px;
-font-size:24px;
+.main{
+margin-top:80px;
 }
 
 .container{
 background:white;
-width:90%;
 max-width:400px;
 margin:30px auto;
 padding:20px;
 border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-}
-
-input, select{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:1px solid #ccc;
 }
 
 button{
@@ -79,37 +62,36 @@ border-radius:5px;
 font-size:16px;
 }
 
-button:disabled{
-background:gray;
-cursor:not-allowed;
-}
-
-.summary{
-background:#f1f1f1;
-padding:10px;
-border-radius:5px;
-margin-top:10px;
-}
 </style>
+
 </head>
 <body>
 
 <div class="navbar">
+
 <a href="menu.html">Menu</a>
-<a href="cart.html">Cart <span class="cart-count" id="cartCount">0</span></a>
+
+<a href="cart.html">
+Cart <span id="cartCount" class="cart-count">0</span>
+</a>
+
 <a href="orders.html">My Order</a>
+
 <a href="track.html">Track Order</a>
+
 <a href="admin.html">Admin</a>
+
 <a href="#" onclick="logout()">Logout</a>
+
 </div>
 
 <div class="main">
-<header>Checkout</header>
 
 <div class="container">
 
 <h3>Order Summary</h3>
-<div id="orderSummary" class="summary"></div>
+
+<div id="orderSummary"></div>
 
 <form id="checkoutForm">
 
@@ -120,25 +102,32 @@ margin-top:10px;
 <input type="time" id="time" required>
 
 <select id="payment" required>
+
 <option value="">Payment Method</option>
+
 <option value="Mpesa">Mpesa</option>
+
 <option value="Cash">Cash</option>
+
 </select>
 
-<button type="submit" id="submitBtn">
+<button type="submit" id="payBtn">
 Continue to Payment
 </button>
 
 </form>
 
 </div>
+
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-const supabase = window.supabase.createClient(
+const supabase =
+window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
@@ -146,7 +135,15 @@ const supabase = window.supabase.createClient(
 let currentUser = null;
 let cart = [];
 
-/* INIT SESSION */
+
+/* PREVENT PAGE REFRESH */
+document
+.getElementById("checkoutForm")
+.addEventListener("submit", placeOrder);
+
+
+
+/* INIT */
 async function init(){
 
 const { data:{ session } } =
@@ -161,11 +158,12 @@ return;
 
 currentUser = session.user;
 
-await loadCart();
+loadCart();
 
 }
 
 init();
+
 
 
 /* LOAD CART */
@@ -186,74 +184,73 @@ return;
 
 cart = data;
 
-updateCartCount();
+document.getElementById("cartCount").innerText =
+cart.length;
+
 displaySummary();
 
 }
 
 
-/* UPDATE COUNT */
-function updateCartCount(){
-
-document.getElementById("cartCount").innerText =
-cart.length;
-
-}
-
 
 /* DISPLAY SUMMARY */
 function displaySummary(){
 
-const summary =
+let summary =
 document.getElementById("orderSummary");
 
-if(cart.length === 0){
+if(cart.length===0){
 
-summary.innerHTML = "No items in cart";
+summary.innerHTML="Cart empty";
 return;
 
 }
 
 let total = 0;
-let html = "";
+
+let html="";
 
 cart.forEach(item=>{
 
 total += item.price;
 
-html += `<p>${item.item_name} - Ksh ${item.price}</p>`;
+html += `
+<p>${item.item_name} - Ksh ${item.price}</p>
+`;
 
 });
 
-html += `<hr><strong>Total: Ksh ${total}</strong>`;
+html += `<hr>Total: Ksh ${total}`;
 
 summary.innerHTML = html;
 
 }
 
 
-/* SAFE SUBMIT HANDLER */
-document.getElementById("checkoutForm")
-.addEventListener("submit", async function(e){
 
-e.preventDefault();
+/* PLACE ORDER */
+async function placeOrder(event){
+
+event.preventDefault(); // VERY IMPORTANT
 
 const btn =
-document.getElementById("submitBtn");
+document.getElementById("payBtn");
 
 btn.disabled = true;
 btn.innerText = "Processing...";
 
-try{
 
-if(cart.length === 0){
+if(cart.length===0){
 
 alert("Cart empty");
-btn.disabled = false;
-btn.innerText = "Continue to Payment";
+
+btn.disabled=false;
+btn.innerText="Continue to Payment";
+
 return;
 
 }
+
 
 const name =
 document.getElementById("name").value;
@@ -268,20 +265,27 @@ const payment =
 document.getElementById("payment").value;
 
 
-/* INSERT ORDER */
+
 const { data, error } =
 await supabase
 .from("orders")
 .insert([{
 
 user_id: currentUser.id,
+
 student_name: name,
+
 phone: phone,
+
 pickup_time: time,
+
 payment_method: payment,
+
 items: JSON.stringify(cart),
-status: "Waiting",
-payment_status: "Pending"
+
+status:"Waiting",
+
+payment_status:"Pending"
 
 }])
 .select()
@@ -290,7 +294,12 @@ payment_status: "Pending"
 
 if(error){
 
-throw error;
+alert(error.message);
+
+btn.disabled=false;
+btn.innerText="Continue to Payment";
+
+return;
 
 }
 
@@ -306,17 +315,8 @@ await supabase
 window.location.href =
 "payment.html?order_id=" + data.id;
 
-
-}catch(err){
-
-alert(err.message);
-
-btn.disabled = false;
-btn.innerText = "Continue to Payment";
-
 }
 
-});
 
 
 /* LOGOUT */

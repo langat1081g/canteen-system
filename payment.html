@@ -6,6 +6,7 @@
 <title>Make Payment</title>
 
 <style>
+
 body{
 font-family:Arial;
 background:#eef2f7;
@@ -31,6 +32,12 @@ color:white;
 border:none;
 border-radius:5px;
 cursor:pointer;
+font-size:16px;
+}
+
+button:disabled{
+background:gray;
+cursor:not-allowed;
 }
 
 button:hover{
@@ -43,6 +50,7 @@ padding:10px;
 margin-top:15px;
 border-radius:5px;
 }
+
 </style>
 </head>
 <body>
@@ -54,15 +62,17 @@ border-radius:5px;
 <div id="orderInfo">Loading...</div>
 
 <div class="info">
+
 Pay via MPESA<br><br>
 
 Till Number:<br>
 <b>123456</b><br><br>
 
 After paying click button below
+
 </div>
 
-<button onclick="confirmPayment()">
+<button id="payBtn" onclick="confirmPayment()">
 I HAVE PAID
 </button>
 
@@ -72,76 +82,115 @@ I HAVE PAID
 
 <script>
 
-const client = window.supabase.createClient(
+const supabase = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
 let currentOrder = null;
-let orderId = null;
+let currentUser = null;
+
 
 /* GET ORDER ID FROM URL */
 function getOrderId(){
-const params = new URLSearchParams(window.location.search);
+
+const params =
+new URLSearchParams(window.location.search);
+
 return params.get("order_id");
+
 }
 
-/* LOAD SPECIFIC ORDER */
-async function loadOrder(){
 
-const { data:{ user } } =
-await client.auth.getUser();
+/* INIT PAGE */
+async function init(){
 
-if(!user){
+const { data:{ session } } =
+await supabase.auth.getSession();
+
+if(!session){
+
 window.location.href="auth.html";
 return;
+
 }
 
-orderId = getOrderId();
+currentUser = session.user;
+
+loadOrder();
+
+}
+
+
+/* LOAD ORDER */
+async function loadOrder(){
+
+const orderId = getOrderId();
 
 if(!orderId){
+
 document.getElementById("orderInfo").innerHTML =
-"Invalid order.";
+"Invalid order link.";
+
 return;
+
 }
 
-/* LOAD EXACT ORDER */
-let { data, error } =
-await client
+const { data, error } =
+await supabase
 .from("orders")
 .select("*")
 .eq("id", orderId)
-.eq("user_id", user.id)
+.eq("user_id", currentUser.id)
 .single();
 
-if(error || !data){
+if(error){
+
 document.getElementById("orderInfo").innerHTML =
 "Order not found.";
+
 return;
+
 }
 
 currentOrder = data;
 
-let items = JSON.parse(currentOrder.items);
+const items =
+JSON.parse(currentOrder.items);
+
 let total = 0;
 
-items.forEach(item=> total += item.price);
+items.forEach(item=>{
+total += item.price;
+});
+
 
 document.getElementById("orderInfo").innerHTML =
+
 `
-Order Number: <b>${currentOrder.order_number}</b><br>
-Total: <b>Ksh ${total}</b><br>
+Order Number: <b>${currentOrder.order_number}</b><br><br>
+
+Total Amount: <b>Ksh ${total}</b><br><br>
+
 Payment Status: <b>${currentOrder.payment_status}</b>
 `;
+
 }
+
 
 /* CONFIRM PAYMENT */
 async function confirmPayment(){
 
 if(!currentOrder) return;
 
-let { error } =
-await client
+const btn =
+document.getElementById("payBtn");
+
+btn.disabled = true;
+btn.innerText = "Processing...";
+
+const { error } =
+await supabase
 .from("orders")
 .update({
 payment_status:"Pending Approval"
@@ -149,16 +198,25 @@ payment_status:"Pending Approval"
 .eq("id", currentOrder.id);
 
 if(error){
+
 alert(error.message);
+
+btn.disabled = false;
+btn.innerText = "I HAVE PAID";
+
 return;
+
 }
 
-alert("Payment submitted. Waiting for admin approval.");
+alert("Payment submitted successfully.\nWaiting for admin approval.");
 
-window.location.href="orders.html";
+window.location.href = "orders.html";
+
 }
 
-loadOrder();
+
+/* START */
+init();
 
 </script>
 
