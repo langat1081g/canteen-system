@@ -6,7 +6,6 @@
 <title>Make Payment</title>
 
 <style>
-
 body{
 font-family:Arial;
 background:#eef2f7;
@@ -44,9 +43,7 @@ padding:10px;
 margin-top:15px;
 border-radius:5px;
 }
-
 </style>
-
 </head>
 <body>
 
@@ -71,7 +68,6 @@ I HAVE PAID
 
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -82,54 +78,62 @@ const client = window.supabase.createClient(
 );
 
 let currentOrder = null;
+let orderId = null;
 
+/* GET ORDER ID FROM URL */
+function getOrderId(){
+const params = new URLSearchParams(window.location.search);
+return params.get("order_id");
+}
 
-/* LOAD LATEST ORDER */
+/* LOAD SPECIFIC ORDER */
 async function loadOrder(){
 
 const { data:{ user } } =
 await client.auth.getUser();
 
 if(!user){
-
 window.location.href="auth.html";
 return;
-
 }
 
-let { data } =
+orderId = getOrderId();
+
+if(!orderId){
+document.getElementById("orderInfo").innerHTML =
+"Invalid order.";
+return;
+}
+
+/* LOAD EXACT ORDER */
+let { data, error } =
 await client
 .from("orders")
 .select("*")
-.eq("user_id",user.id)
-.order("order_number",{ascending:false})
-.limit(1);
+.eq("id", orderId)
+.eq("user_id", user.id)
+.single();
 
-if(!data || data.length===0){
-
+if(error || !data){
 document.getElementById("orderInfo").innerHTML =
-"No order found";
+"Order not found.";
 return;
-
 }
 
-currentOrder = data[0];
+currentOrder = data;
 
 let items = JSON.parse(currentOrder.items);
-
 let total = 0;
 
 items.forEach(item=> total += item.price);
 
 document.getElementById("orderInfo").innerHTML =
-
 `
 Order Number: <b>${currentOrder.order_number}</b><br>
-Total: <b>Ksh ${total}</b>
+Total: <b>Ksh ${total}</b><br>
+Payment Status: <b>${currentOrder.payment_status}</b>
 `;
-
 }
-
 
 /* CONFIRM PAYMENT */
 async function confirmPayment(){
@@ -142,21 +146,17 @@ await client
 .update({
 payment_status:"Pending Approval"
 })
-.eq("id",currentOrder.id);
+.eq("id", currentOrder.id);
 
 if(error){
-
 alert(error.message);
 return;
-
 }
 
 alert("Payment submitted. Waiting for admin approval.");
 
 window.location.href="orders.html";
-
 }
-
 
 loadOrder();
 
