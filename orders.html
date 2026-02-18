@@ -6,7 +6,6 @@
 <title>My Order Status</title>
 
 <style>
-
 body{
 font-family: Arial;
 background:#eef2f7;
@@ -79,167 +78,128 @@ border:none;
 cursor:pointer;
 border-radius:5px;
 }
-
 </style>
 </head>
 <body>
 
 <div class="navbar">
-
 <a href="menu.html">Menu</a>
 <a href="cart.html">Cart</a>
 <a href="orders.html">My Order</a>
 <a href="track.html">Track Order</a>
 <a href="#" onclick="logout()">Logout</a>
-
 </div>
 
 <div class="main">
-
 <header>My Order Status</header>
 
 <div class="container">
-
 <div id="orderDetails">Loading...</div>
-
 <button onclick="goMenu()">Order More Food</button>
-
 </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
-const client =
-window.supabase.createClient(
+const client = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-/* PROTECT PAGE */
-async function protectPage(){
+let currentUser = null;
 
-const { data: { user } } =
-await client.auth.getUser();
+/* INIT PAGE */
+async function init(){
 
-if(!user){
+const { data, error } = await client.auth.getSession();
 
+if(error || !data.session){
 window.location.href="auth.html";
-
 return;
-
 }
 
-}
+currentUser = data.session.user;
 
-protectPage();
+loadOrder();
+}
 
 /* LOAD ORDER */
 async function loadOrder(){
 
-const { data: { user } } =
-await client.auth.getUser();
+if(!currentUser) return;
 
-if(!user){
-
-window.location.href="auth.html";
-return;
-
-}
-
-let { data, error } =
-await client
+let { data, error } = await client
 .from("orders")
 .select("*")
-.eq("user_id", user.id)
+.eq("user_id", currentUser.id)
 .order("order_number",{ascending:false})
 .limit(1);
 
-if(error || !data || data.length===0){
+if(error){
+document.getElementById("orderDetails").innerHTML =
+"Error loading order";
+return;
+}
 
+if(!data || data.length===0){
 document.getElementById("orderDetails").innerHTML =
 "No order found";
-
 return;
-
 }
 
 let order = data[0];
 
-let { data: queue } =
-await client
+/* GET QUEUE POSITION */
+let { data: queue } = await client
 .from("orders")
 .select("order_number")
-.lte("order_number",order.order_number);
+.lte("order_number", order.order_number);
 
 let position = queue.length - 1;
-
 let waitTime = position * 2;
 
-let status =
-position===0?"READY":"WAITING";
+/* USE DATABASE STATUS */
+let status = order.status || "Waiting";
 
-let items =
-JSON.parse(order.items);
-
-let itemsHTML="";
+let items = JSON.parse(order.items);
+let itemsHTML = "";
 
 items.forEach(item=>{
-
-itemsHTML+=`
+itemsHTML += `
 <div class="item">
 ${item.name} - Ksh ${item.price}
 </div>`;
-
 });
 
 document.getElementById("orderDetails").innerHTML = `
+<p><strong>Queue Number:</strong> ${order.order_number}</p>
+<p><strong>Students ahead:</strong> ${position}</p>
+<p><strong>Estimated wait:</strong> ${waitTime} minutes</p>
 
-<p><strong>Queue Number:</strong>
-${order.order_number}</p>
-
-<p><strong>Students ahead:</strong>
-${position}</p>
-
-<p><strong>Estimated wait:</strong>
-${waitTime} minutes</p>
-
-<p class="status ${
-status==="READY"?"ready":"wait"
-}">
+<p class="status ${status==="Ready"?"ready":"wait"}">
 Status: ${status}
 </p>
 
 <p><strong>Items:</strong></p>
-
 ${itemsHTML}
-
 `;
-
-}
-
-/* LOGOUT */
-async function logout(){
-
-await client.auth.signOut();
-
-window.location.href="auth.html";
-
-}
-
-function goMenu(){
-
-window.location.href="menu.html";
-
 }
 
 /* AUTO REFRESH */
-setInterval(loadOrder,5000);
+setInterval(loadOrder, 5000);
 
-loadOrder();
+/* LOGOUT */
+async function logout(){
+await client.auth.signOut();
+window.location.href="auth.html";
+}
 
+function goMenu(){
+window.location.href="menu.html";
+}
+
+init();
 </script>
 
 </body>

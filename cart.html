@@ -147,56 +147,69 @@ Proceed to Checkout
 
 <script>
 
-const SUPABASE_URL =
-"https://hbofboaoixzxqzouncyj.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
-
-const supabase =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+const supabase = window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
 let currentUser = null;
 let cart = [];
 
-/* FIXED INIT USING SESSION */
+/* INIT PAGE */
 async function init(){
 
-const { data, error } =
+const { data: { session } } =
 await supabase.auth.getSession();
 
-if(error || !data.session){
+if(!session){
 
 window.location.href="auth.html";
 return;
 
 }
 
-currentUser = data.session.user;
+currentUser = session.user;
 
-/* LOAD USER CART */
-cart =
-JSON.parse(
-localStorage.getItem("cart_" + currentUser.id)
-) || [];
+/* LOAD CART FROM SUPABASE */
+loadCart();
+
+}
+
+init();
+
+
+/* LOAD CART ITEMS */
+async function loadCart(){
+
+const { data, error } =
+await supabase
+.from("cart")
+.select("*")
+.eq("user_id", currentUser.id);
+
+if(error){
+
+alert("Error loading cart");
+return;
+
+}
+
+cart = data;
 
 updateCartCount();
 displayCart();
 
 }
 
-init();
 
-/* UPDATE COUNT */
+/* UPDATE CART COUNT */
 function updateCartCount(){
 
 document.getElementById("cartCount").innerText =
 cart.length;
 
 }
+
 
 /* DISPLAY CART */
 function displayCart(){
@@ -219,20 +232,20 @@ return;
 
 }
 
-cart.forEach((item,index)=>{
+cart.forEach((item)=>{
 
-total+=item.price;
+total += item.price;
 
-cartList.innerHTML+=`
+cartList.innerHTML += `
 
 <div class="cart-item">
 
-<h3>${item.name}</h3>
+<h3>${item.item_name}</h3>
 
 <p>Price: Ksh ${item.price}</p>
 
 <button class="remove-btn"
-onclick="removeItem(${index})">
+onclick="removeItem('${item.id}')">
 
 Remove
 
@@ -245,24 +258,23 @@ Remove
 });
 
 document.getElementById("totalPrice").innerText =
-"Total: Ksh "+total;
+"Total: Ksh " + total;
 
 }
 
-/* REMOVE */
-function removeItem(index){
 
-cart.splice(index,1);
+/* REMOVE ITEM */
+async function removeItem(id){
 
-localStorage.setItem(
-"cart_" + currentUser.id,
-JSON.stringify(cart)
-);
+await supabase
+.from("cart")
+.delete()
+.eq("id", id);
 
-displayCart();
-updateCartCount();
+loadCart();
 
 }
+
 
 /* CHECKOUT */
 function checkout(){
@@ -278,12 +290,9 @@ window.location.href="checkout.html";
 
 }
 
+
 /* LOGOUT */
 async function logout(){
-
-localStorage.removeItem(
-"cart_" + currentUser.id
-);
 
 await supabase.auth.signOut();
 

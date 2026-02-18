@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#eef2f7;
+padding:20px;
+}
+
+.order{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 4px 8px rgba(0,0,0,0.1);
+}
+
+button{
+margin:5px;
+padding:8px;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:5px;
+}
+
+.pay{background:green;}
+.prep{background:orange;}
+.ready{background:blue;}
+.complete{background:black;}
+
+.logout{
+background:red;
+float:right;
+}
+
+</style>
+
+</head>
+<body>
+
+<h2>
+Admin Dashboard
+<button class="logout" onclick="logout()">Logout</button>
+</h2>
+
+<div id="orders">Loading...</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const ADMIN_EMAIL = "langat3080g@gmail.com"; // CHANGE THIS
+
+
+const client =
+window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
+);
+
+
+let currentAdmin = null;
+
+
+/* PROTECT ADMIN PAGE */
+async function protectAdmin(){
+
+const { data:{ user } } =
+await client.auth.getUser();
+
+if(!user){
+
+alert("Login required");
+window.location.href="auth.html";
+return;
+
+}
+
+if(user.email !== ADMIN_EMAIL){
+
+alert("Access denied. Admin only.");
+
+window.location.href="menu.html";
+return;
+
+}
+
+currentAdmin = user;
+
+loadOrders();
+
+}
+
+
+protectAdmin();
+
+
+
+/* LOAD ORDERS */
+async function loadOrders(){
+
+let { data, error } =
+await client
+.from("orders")
+.select("*")
+.order("order_number",{ascending:false});
+
+if(error){
+
+document.getElementById("orders").innerHTML =
+"Error loading orders";
+
+return;
+
+}
+
+let html="";
+
+data.forEach(order=>{
+
+html+=`
+
+<div class="order">
+
+<b>Order #${order.order_number}</b><br>
+
+User: ${order.user_id}<br>
+
+Payment: ${order.payment_status || "Unpaid"}<br>
+
+Status: ${order.status || "Waiting"}<br><br>
+
+<button class="pay"
+onclick="approvePayment('${order.id}')">
+Approve Payment
+</button>
+
+<button class="prep"
+onclick="updateStatus('${order.id}','Preparing')">
+Preparing
+</button>
+
+<button class="ready"
+onclick="updateStatus('${order.id}','Ready')">
+Ready
+</button>
+
+<button class="complete"
+onclick="updateStatus('${order.id}','Completed')">
+Complete
+</button>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("orders").innerHTML = html;
+
+}
+
+
+
+/* APPROVE PAYMENT */
+async function approvePayment(id){
+
+await client
+.from("orders")
+.update({
+payment_status:"Paid",
+status:"Preparing"
+})
+.eq("id",id);
+
+loadOrders();
+
+}
+
+
+/* UPDATE STATUS */
+async function updateStatus(id,status){
+
+await client
+.from("orders")
+.update({
+status:status
+})
+.eq("id",id);
+
+loadOrders();
+
+}
+
+
+
+/* LOGOUT */
+async function logout(){
+
+await client.auth.signOut();
+
+window.location.href="auth.html";
+
+}
+
+</script>
+
+</body>
+</html>

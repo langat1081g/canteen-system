@@ -197,103 +197,106 @@ Loading user...
 <script>
 
 /* CREATE CLIENT */
-const client = window.supabase.createClient(
+const supabase = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-/* PROTECT PAGE AND LOAD USER */
-async function protectPage(){
+let currentUser = null;
 
-const { data: { user } } =
-await client.auth.getUser();
 
-if(!user){
+/* INIT PAGE */
+async function init(){
+
+const { data: { session }, error } =
+await supabase.auth.getSession();
+
+if(error || !session){
 
 window.location.href="auth.html";
 return;
 
 }
 
+currentUser = session.user;
+
 /* SHOW USER EMAIL */
 document.getElementById("studentInfo").innerHTML =
-"Logged in as: " + user.email;
+"Logged in as: " + currentUser.email;
+
+/* LOAD CART COUNT */
+await loadCartCount();
 
 }
 
-protectPage();
+init();
 
-/* CART — FIXED */
-let cart = [];
 
-async function loadCart(){
+/* LOAD CART COUNT */
+async function loadCartCount(){
 
-const { data: { user } } =
-await client.auth.getUser();
+if(!currentUser) return;
 
-if(!user) return;
+const { data, error } =
+await supabase
+.from("cart")
+.select("id")
+.eq("user_id", currentUser.id);
 
-cart =
-JSON.parse(
-localStorage.getItem("cart_" + user.id)
-) || [];
+if(error){
 
-updateCartCount();
+console.log(error);
+return;
 
 }
 
+document.getElementById("cartCount").innerText =
+data.length;
+
+}
+
+
+/* ADD TO CART */
 async function addCart(name,price){
 
-const { data: { user } } =
-await client.auth.getUser();
-
-if(!user){
+if(!currentUser){
 
 alert("Please login first");
 return;
 
 }
 
-cart.push({name,price});
+const { error } =
+await supabase
+.from("cart")
+.insert([{
+user_id: currentUser.id,
+item_name: name,
+price: price
+}]);
 
-localStorage.setItem(
-"cart_" + user.id,
-JSON.stringify(cart)
-);
+if(error){
 
-updateCartCount();
+alert(error.message);
+return;
+
+}
+
+await loadCartCount();
 
 alert(name + " added to cart");
 
 }
 
-function updateCartCount(){
-
-document.getElementById("cartCount").innerText =
-cart.length;
-
-}
 
 /* LOGOUT */
 async function logout(){
 
-const { data: { user } } =
-await client.auth.getUser();
-
-if(user){
-
-localStorage.removeItem("cart_" + user.id);
-
-}
-
-await client.auth.signOut();
+await supabase.auth.signOut();
 
 window.location.href="auth.html";
 
 }
-
-/* LOAD CART ON PAGE LOAD */
-loadCart();
 
 </script>
 

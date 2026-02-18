@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Payment</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#eef2f7;
+margin:0;
+}
+
+.container{
+background:white;
+max-width:400px;
+margin:80px auto;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.2);
+text-align:center;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:20px;
+background:green;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:darkgreen;
+}
+
+.info{
+background:#f1f1f1;
+padding:10px;
+margin-top:15px;
+border-radius:5px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h2>Payment</h2>
+
+<div id="orderInfo">Loading...</div>
+
+<div class="info">
+Pay via MPESA<br><br>
+
+Till Number:<br>
+<b>123456</b><br><br>
+
+After paying click button below
+</div>
+
+<button onclick="confirmPayment()">
+I HAVE PAID
+</button>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const client = window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
+);
+
+let currentOrder = null;
+
+
+/* LOAD LATEST ORDER */
+async function loadOrder(){
+
+const { data:{ user } } =
+await client.auth.getUser();
+
+if(!user){
+
+window.location.href="auth.html";
+return;
+
+}
+
+let { data } =
+await client
+.from("orders")
+.select("*")
+.eq("user_id",user.id)
+.order("order_number",{ascending:false})
+.limit(1);
+
+if(!data || data.length===0){
+
+document.getElementById("orderInfo").innerHTML =
+"No order found";
+return;
+
+}
+
+currentOrder = data[0];
+
+let items = JSON.parse(currentOrder.items);
+
+let total = 0;
+
+items.forEach(item=> total += item.price);
+
+document.getElementById("orderInfo").innerHTML =
+
+`
+Order Number: <b>${currentOrder.order_number}</b><br>
+Total: <b>Ksh ${total}</b>
+`;
+
+}
+
+
+/* CONFIRM PAYMENT */
+async function confirmPayment(){
+
+if(!currentOrder) return;
+
+let { error } =
+await client
+.from("orders")
+.update({
+payment_status:"Pending Approval"
+})
+.eq("id",currentOrder.id);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+alert("Payment submitted. Waiting for admin approval.");
+
+window.location.href="orders.html";
+
+}
+
+
+loadOrder();
+
+</script>
+
+</body>
+</html>

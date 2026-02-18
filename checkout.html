@@ -145,50 +145,60 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <script>
 
-const client = window.supabase.createClient(
+const supabase = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-/* CURRENT USER */
 let currentUser = null;
+let cart = [];
 
-/* PROTECT PAGE */
-async function protectPage(){
 
-const { data: { user } } =
-await client.auth.getUser();
+/* INIT PAGE */
+async function init(){
 
-if(!user){
+const { data: { session } } =
+await supabase.auth.getSession();
+
+if(!session){
 
 window.location.href="auth.html";
 return;
 
 }
 
-currentUser = user;
+currentUser = session.user;
 
-/* load cart after user loads */
 loadCart();
 
 }
 
-protectPage();
+init();
 
-/* LOAD CART — FIXED */
-let cart = [];
 
-function loadCart(){
+/* LOAD CART FROM SUPABASE */
+async function loadCart(){
 
-cart =
-JSON.parse(
-localStorage.getItem("cart_" + currentUser.id)
-) || [];
+const { data, error } =
+await supabase
+.from("cart")
+.select("*")
+.eq("user_id", currentUser.id);
+
+if(error){
+
+alert("Error loading cart");
+return;
+
+}
+
+cart = data;
 
 updateCartCount();
 displaySummary();
 
 }
+
 
 /* UPDATE COUNT */
 function updateCartCount(){
@@ -198,6 +208,7 @@ cart.length;
 
 }
 
+
 /* DISPLAY SUMMARY */
 function displaySummary(){
 
@@ -206,8 +217,7 @@ document.getElementById("orderSummary");
 
 if(cart.length === 0){
 
-summary.innerHTML =
-"No items in cart";
+summary.innerHTML = "No items in cart";
 return;
 
 }
@@ -216,8 +226,11 @@ let total = 0;
 let html = "";
 
 cart.forEach(item=>{
+
 total += item.price;
-html += `<p>${item.name} - Ksh ${item.price}</p>`;
+
+html += `<p>${item.item_name} - Ksh ${item.price}</p>`;
+
 });
 
 html += `<hr><strong>Total: Ksh ${total}</strong>`;
@@ -226,21 +239,22 @@ summary.innerHTML = html;
 
 }
 
+
 /* PLACE ORDER */
 async function placeOrder(event){
 
 event.preventDefault();
 
-if(!currentUser){
+if(cart.length === 0){
 
-window.location.href="auth.html";
+alert("Cart is empty");
 return;
 
 }
 
 /* GET LAST ORDER NUMBER */
 let { data: lastOrder } =
-await client
+await supabase
 .from("orders")
 .select("order_number")
 .order("order_number",{ascending:false})
@@ -255,9 +269,10 @@ lastOrder[0].order_number + 1;
 
 }
 
+
 /* SAVE ORDER */
 let { error } =
-await client
+await supabase
 .from("orders")
 .insert([{
 
@@ -275,13 +290,16 @@ return;
 
 }
 
-/* CLEAR CART — FIXED */
-localStorage.removeItem(
-"cart_" + currentUser.id
-);
+
+/* DELETE CART FROM SUPABASE */
+await supabase
+.from("cart")
+.delete()
+.eq("user_id", currentUser.id);
+
 
 alert(
-"Order placed!\nQueue Number: "+
+"Order placed!\nQueue Number: " +
 orderNumber
 );
 
@@ -289,18 +307,11 @@ window.location.href="orders.html";
 
 }
 
+
 /* LOGOUT */
 async function logout(){
 
-if(currentUser){
-
-localStorage.removeItem(
-"cart_" + currentUser.id
-);
-
-}
-
-await client.auth.signOut();
+await supabase.auth.signOut();
 
 window.location.href="auth.html";
 
