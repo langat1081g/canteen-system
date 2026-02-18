@@ -38,24 +38,31 @@ background:red;
 float:right;
 }
 
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
 </style>
 
 </head>
 <body>
 
-<h2>
-Admin Dashboard
+<div class="header">
+<h2>Admin Dashboard</h2>
 <button class="logout" onclick="logout()">Logout</button>
-</h2>
+</div>
 
-<div id="orders">Loading...</div>
+<div id="orders">Loading orders...</div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-const ADMIN_EMAIL = "langat3080g@gmail.com"; // CHANGE THIS
+/* CHANGE THIS TO YOUR ADMIN EMAIL */
+const ADMIN_EMAIL = "langat3080g@gmail.com";
 
 
 const client =
@@ -64,28 +71,29 @@ window.supabase.createClient(
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-
 let currentAdmin = null;
 
 
-/* PROTECT ADMIN PAGE */
+/* RELIABLE ADMIN PROTECTION */
 async function protectAdmin(){
 
-const { data:{ user } } =
-await client.auth.getUser();
+const { data, error } =
+await client.auth.getSession();
 
-if(!user){
+if(error || !data.session){
 
-alert("Login required");
+alert("Please login first");
 window.location.href="auth.html";
 return;
 
 }
 
+const user = data.session.user;
+
+/* CHECK ADMIN EMAIL */
 if(user.email !== ADMIN_EMAIL){
 
 alert("Access denied. Admin only.");
-
 window.location.href="menu.html";
 return;
 
@@ -96,7 +104,6 @@ currentAdmin = user;
 loadOrders();
 
 }
-
 
 protectAdmin();
 
@@ -115,7 +122,14 @@ if(error){
 
 document.getElementById("orders").innerHTML =
 "Error loading orders";
+return;
 
+}
+
+if(data.length === 0){
+
+document.getElementById("orders").innerHTML =
+"No orders found";
 return;
 
 }
@@ -124,17 +138,21 @@ let html="";
 
 data.forEach(order=>{
 
-html+=`
+let payment =
+order.payment_status || "Pending";
+
+let status =
+order.status || "Waiting";
+
+html += `
 
 <div class="order">
 
-<b>Order #${order.order_number}</b><br>
+<b>Order #${order.order_number}</b><br><br>
 
-User: ${order.user_id}<br>
-
-Payment: ${order.payment_status || "Unpaid"}<br>
-
-Status: ${order.status || "Waiting"}<br><br>
+User ID: ${order.user_id}<br>
+Payment: <b>${payment}</b><br>
+Status: <b>${status}</b><br><br>
 
 <button class="pay"
 onclick="approvePayment('${order.id}')">
@@ -153,7 +171,7 @@ Ready
 
 <button class="complete"
 onclick="updateStatus('${order.id}','Completed')">
-Complete
+Completed
 </button>
 
 </div>
@@ -171,6 +189,7 @@ document.getElementById("orders").innerHTML = html;
 /* APPROVE PAYMENT */
 async function approvePayment(id){
 
+const { error } =
 await client
 .from("orders")
 .update({
@@ -179,20 +198,36 @@ status:"Preparing"
 })
 .eq("id",id);
 
+if(error){
+
+alert(error.message);
+return;
+
+}
+
 loadOrders();
 
 }
 
 
+
 /* UPDATE STATUS */
 async function updateStatus(id,status){
 
+const { error } =
 await client
 .from("orders")
 .update({
 status:status
 })
 .eq("id",id);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
 
 loadOrders();
 
