@@ -6,7 +6,6 @@
 <title>Make Payment</title>
 
 <style>
-
 body{
 font-family:Arial;
 background:#eef2f7;
@@ -37,11 +36,6 @@ font-size:16px;
 
 button:disabled{
 background:gray;
-cursor:not-allowed;
-}
-
-button:hover{
-background:darkgreen;
 }
 
 .info{
@@ -50,7 +44,6 @@ padding:10px;
 margin-top:15px;
 border-radius:5px;
 }
-
 </style>
 </head>
 <body>
@@ -62,17 +55,13 @@ border-radius:5px;
 <div id="orderInfo">Loading...</div>
 
 <div class="info">
-
 Pay via MPESA<br><br>
-
 Till Number:<br>
 <b>123456</b><br><br>
-
 After paying click button below
-
 </div>
 
-<button id="payBtn" onclick="confirmPayment()">
+<button id="payBtn">
 I HAVE PAID
 </button>
 
@@ -82,7 +71,8 @@ I HAVE PAID
 
 <script>
 
-const supabase = window.supabase.createClient(
+/* SAFE CLIENT INIT */
+const supabaseClient = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
@@ -91,33 +81,27 @@ let currentOrder = null;
 let currentUser = null;
 
 
-/* GET ORDER ID FROM URL */
+/* GET ORDER ID */
 function getOrderId(){
-
-const params =
-new URLSearchParams(window.location.search);
-
+const params = new URLSearchParams(window.location.search);
 return params.get("order_id");
-
 }
 
 
-/* INIT PAGE */
+/* INIT */
 async function init(){
 
 const { data:{ session } } =
-await supabase.auth.getSession();
+await supabaseClient.auth.getSession();
 
 if(!session){
-
 window.location.href="auth.html";
 return;
-
 }
 
 currentUser = session.user;
 
-loadOrder();
+await loadOrder();
 
 }
 
@@ -128,16 +112,12 @@ async function loadOrder(){
 const orderId = getOrderId();
 
 if(!orderId){
-
-document.getElementById("orderInfo").innerHTML =
-"Invalid order link.";
-
+document.getElementById("orderInfo").innerHTML="Invalid order.";
 return;
-
 }
 
 const { data, error } =
-await supabase
+await supabaseClient
 .from("orders")
 .select("*")
 .eq("id", orderId)
@@ -145,34 +125,21 @@ await supabase
 .single();
 
 if(error){
-
-document.getElementById("orderInfo").innerHTML =
-"Order not found.";
-
+document.getElementById("orderInfo").innerHTML="Order not found.";
 return;
-
 }
 
 currentOrder = data;
 
-const items =
-JSON.parse(currentOrder.items);
+const items = JSON.parse(data.items);
 
 let total = 0;
+items.forEach(item=> total += item.price);
 
-items.forEach(item=>{
-total += item.price;
-});
-
-
-document.getElementById("orderInfo").innerHTML =
-
-`
-Order Number: <b>${currentOrder.order_number}</b><br><br>
-
+document.getElementById("orderInfo").innerHTML = `
+Order ID: <b>${data.id}</b><br><br>
 Total Amount: <b>Ksh ${total}</b><br><br>
-
-Payment Status: <b>${currentOrder.payment_status}</b>
+Status: <b>${data.payment_status}</b>
 `;
 
 }
@@ -183,36 +150,35 @@ async function confirmPayment(){
 
 if(!currentOrder) return;
 
-const btn =
-document.getElementById("payBtn");
+const btn = document.getElementById("payBtn");
 
 btn.disabled = true;
 btn.innerText = "Processing...";
 
 const { error } =
-await supabase
+await supabaseClient
 .from("orders")
-.update({
-payment_status:"Pending Approval"
-})
+.update({ payment_status:"Pending Approval" })
 .eq("id", currentOrder.id);
 
 if(error){
-
 alert(error.message);
-
-btn.disabled = false;
-btn.innerText = "I HAVE PAID";
-
+btn.disabled=false;
+btn.innerText="I HAVE PAID";
 return;
+}
+
+alert("Payment submitted successfully");
+
+window.location.href="orders.html";
 
 }
 
-alert("Payment submitted successfully.\nWaiting for admin approval.");
 
-window.location.href = "orders.html";
-
-}
+/* BUTTON CLICK */
+document
+.getElementById("payBtn")
+.addEventListener("click", confirmPayment);
 
 
 /* START */
