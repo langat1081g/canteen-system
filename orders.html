@@ -62,11 +62,22 @@ border-radius:5px;
 .status{
 font-size:20px;
 font-weight:bold;
-margin-top:15px;
+margin-top:10px;
+}
+
+.payment{
+font-size:18px;
+font-weight:bold;
+margin-top:10px;
 }
 
 .ready{color:green;}
 .wait{color:#ff9800;}
+.complete{color:black;}
+
+.pending{color:red;}
+.pendingApproval{color:orange;}
+.paid{color:green;}
 
 button{
 width:100%;
@@ -87,49 +98,63 @@ border-radius:5px;
 <a href="cart.html">Cart</a>
 <a href="orders.html">My Order</a>
 <a href="track.html">Track Order</a>
+<a href="admin.html">Admin</a>
 <a href="#" onclick="logout()">Logout</a>
 </div>
 
 <div class="main">
+
 <header>My Order Status</header>
 
 <div class="container">
+
 <div id="orderDetails">Loading...</div>
+
 <button onclick="goMenu()">Order More Food</button>
+
 </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const client = window.supabase.createClient(
+
+const supabase = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
 let currentUser = null;
 
-/* INIT PAGE */
+
+/* INIT */
 async function init(){
 
-const { data, error } = await client.auth.getSession();
+const { data:{ session }, error } =
+await supabase.auth.getSession();
 
-if(error || !data.session){
+if(error || !session){
+
 window.location.href="auth.html";
 return;
+
 }
 
-currentUser = data.session.user;
+currentUser = session.user;
 
 loadOrder();
+
 }
+
 
 /* LOAD ORDER */
 async function loadOrder(){
 
 if(!currentUser) return;
 
-let { data, error } = await client
+let { data, error } =
+await supabase
 .from("orders")
 .select("*")
 .eq("user_id", currentUser.id)
@@ -137,69 +162,122 @@ let { data, error } = await client
 .limit(1);
 
 if(error){
+
 document.getElementById("orderDetails").innerHTML =
 "Error loading order";
+
 return;
+
 }
 
 if(!data || data.length===0){
+
 document.getElementById("orderDetails").innerHTML =
 "No order found";
+
 return;
+
 }
 
 let order = data[0];
 
-/* GET QUEUE POSITION */
-let { data: queue } = await client
+
+/* QUEUE POSITION */
+let { data: queue } =
+await supabase
 .from("orders")
 .select("order_number")
 .lte("order_number", order.order_number);
 
 let position = queue.length - 1;
+
 let waitTime = position * 2;
 
-/* USE DATABASE STATUS */
+
+/* STATUS */
 let status = order.status || "Waiting";
 
+let payment = order.payment_status || "Pending";
+
+
+/* ITEMS */
 let items = JSON.parse(order.items);
-let itemsHTML = "";
+
+let itemsHTML="";
 
 items.forEach(item=>{
-itemsHTML += `
+
+itemsHTML+=`
 <div class="item">
-${item.name} - Ksh ${item.price}
-</div>`;
+${item.item_name || item.name} - Ksh ${item.price}
+</div>
+`;
+
 });
 
-document.getElementById("orderDetails").innerHTML = `
+
+/* STATUS COLOR */
+let statusClass="wait";
+
+if(status==="Ready") statusClass="ready";
+if(status==="Completed") statusClass="complete";
+
+
+/* PAYMENT COLOR */
+let paymentClass="pending";
+
+if(payment==="Pending Approval") paymentClass="pendingApproval";
+if(payment==="Paid") paymentClass="paid";
+
+
+document.getElementById("orderDetails").innerHTML=`
+
 <p><strong>Queue Number:</strong> ${order.order_number}</p>
+
 <p><strong>Students ahead:</strong> ${position}</p>
+
 <p><strong>Estimated wait:</strong> ${waitTime} minutes</p>
 
-<p class="status ${status==="Ready"?"ready":"wait"}">
-Status: ${status}
+<p class="payment ${paymentClass}">
+Payment: ${payment}
+</p>
+
+<p class="status ${statusClass}">
+Order Status: ${status}
 </p>
 
 <p><strong>Items:</strong></p>
+
 ${itemsHTML}
+
 `;
+
 }
 
-/* AUTO REFRESH */
-setInterval(loadOrder, 5000);
+
+/* AUTO REFRESH EVERY 3 SECONDS */
+setInterval(loadOrder,3000);
+
 
 /* LOGOUT */
 async function logout(){
-await client.auth.signOut();
+
+await supabase.auth.signOut();
+
 window.location.href="auth.html";
+
 }
+
 
 function goMenu(){
+
 window.location.href="menu.html";
+
 }
 
+
 init();
+
 </script>
 
 </body>

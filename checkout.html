@@ -69,7 +69,12 @@ cursor:pointer;
 border-radius:5px;
 font-size:16px;
 }
+
+button:disabled{
+background:gray;
+}
 </style>
+
 </head>
 
 <body>
@@ -89,7 +94,8 @@ font-size:16px;
 <h3>Order Summary</h3>
 <div id="orderSummary"></div>
 
-<form id="checkoutForm">
+<!-- FIX: handle submit directly -->
+<form id="checkoutForm" onsubmit="placeOrder(event); return false;">
 
 <input type="text" id="name" placeholder="Student Name" required>
 
@@ -100,11 +106,10 @@ font-size:16px;
 <select id="payment" required>
 <option value="">Payment Method</option>
 <option value="Mpesa">Mpesa</option>
-<option value="Cash">Cash</option>
 </select>
 
 <button type="submit" id="payBtn">
-Continue to Payment
+Make Payment
 </button>
 
 </form>
@@ -117,7 +122,7 @@ Continue to Payment
 
 <script>
 
-/* CREATE CLIENT ONCE */
+/* CREATE CLIENT */
 const supabase = window.supabase.createClient(
 "https://hbofboaoixzxqzouncyj.supabase.co",
 "sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
@@ -127,19 +132,7 @@ let currentUser = null;
 let cart = [];
 
 
-/* WAIT FOR PAGE LOAD — CRITICAL FIX */
-window.addEventListener("DOMContentLoaded", () => {
-
-document
-.getElementById("checkoutForm")
-.addEventListener("submit", placeOrder);
-
-init();
-
-});
-
-
-/* INIT SESSION */
+/* INIT */
 async function init(){
 
 const { data:{ session }, error } =
@@ -157,6 +150,8 @@ currentUser = session.user;
 loadCart();
 
 }
+
+init();
 
 
 /* LOAD CART */
@@ -216,11 +211,10 @@ summary.innerHTML = html;
 }
 
 
-/* PLACE ORDER — REFRESH SAFE */
+/* PLACE ORDER */
 async function placeOrder(event){
 
 event.preventDefault();
-event.stopPropagation();
 
 const btn =
 document.getElementById("payBtn");
@@ -228,16 +222,18 @@ document.getElementById("payBtn");
 btn.disabled = true;
 btn.innerText = "Processing...";
 
+
 if(cart.length === 0){
 
 alert("Cart empty");
 
 btn.disabled=false;
-btn.innerText="Continue to Payment";
+btn.innerText="Make Payment";
 
 return;
 
 }
+
 
 const name =
 document.getElementById("name").value;
@@ -252,6 +248,7 @@ const payment =
 document.getElementById("payment").value;
 
 
+/* INSERT ORDER */
 const { data, error } =
 await supabase
 .from("orders")
@@ -276,7 +273,7 @@ if(error){
 alert(error.message);
 
 btn.disabled=false;
-btn.innerText="Continue to Payment";
+btn.innerText="Make Payment";
 
 return;
 
