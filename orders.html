@@ -116,14 +116,14 @@ border-radius:5px;
 
 </div>
 
+<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 
 <script>
 
-const supabase = window.supabase.createClient(
-"https://hbofboaoixzxqzouncyj.supabase.co",
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
-);
+/* USE SHARED CLIENT */
+const supabase = window.supabaseClient;
 
 let currentUser = null;
 
@@ -136,7 +136,7 @@ await supabase.auth.getSession();
 
 if(error || !session){
 
-window.location.href="auth.html";
+window.location.href="index.html";
 return;
 
 }
@@ -264,7 +264,7 @@ async function logout(){
 
 await supabase.auth.signOut();
 
-window.location.href="auth.html";
+window.location.href="index.html";
 
 }
 

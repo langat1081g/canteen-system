@@ -59,15 +59,15 @@ background:#0056b3;
 
 </div>
 
+<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 
 <script>
 
-/* CREATE CLIENT */
-const client = window.supabase.createClient(
-"https://hbofboaoixzxqzouncyj.supabase.co",
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
-);
+/* USE SHARED CLIENT */
+const client = window.supabaseClient;
+
 
 /* AUTO REDIRECT IF ALREADY LOGGED IN */
 async function checkSession(){
@@ -84,6 +84,7 @@ window.location.href = "menu.html";
 }
 
 checkSession();
+
 
 /* SIGNUP */
 async function signup(){
@@ -120,6 +121,7 @@ alert("Signup successful. You can login now.");
 }
 
 }
+
 
 /* LOGIN */
 async function login(){
@@ -158,6 +160,7 @@ window.location.href = "menu.html";
 }
 
 }
+
 
 /* CONNECT BUTTONS */
 document.getElementById("signupBtn").onclick = signup;

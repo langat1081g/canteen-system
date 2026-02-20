@@ -117,15 +117,14 @@ Make Payment
 </div>
 
 
+<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 
 <script>
 
-/* CREATE CLIENT */
-const supabaseClient = window.supabase.createClient(
-"https://hbofboaoixzxqzouncyj.supabase.co",
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
-);
+/* USE SHARED CLIENT */
+const supabaseClient = window.supabaseClient;
 
 let currentUser = null;
 let cart = [];
