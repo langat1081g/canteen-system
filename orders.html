@@ -3,22 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Order Status</title>
+<title>My Orders</title>
 
 <style>
+
 body{
-font-family: Arial;
+font-family:Arial;
 background:#eef2f7;
 margin:0;
 }
 
 .navbar{
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-background: #333;
-padding: 15px;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:#333;
+padding:15px;
 text-align:center;
 }
 
@@ -31,57 +32,75 @@ font-weight:bold;
 
 .main{
 margin-top:80px;
-}
-
-header{
-background:#007bff;
-color:white;
-text-align:center;
-padding:15px;
-font-size:24px;
-}
-
-.container{
-background:white;
-width:90%;
-max-width:400px;
-margin:30px auto;
 padding:20px;
+max-width:500px;
+margin-left:auto;
+margin-right:auto;
+}
+
+.serving{
+background:#28a745;
+color:white;
+padding:12px;
+border-radius:8px;
+margin-bottom:20px;
+font-size:18px;
+font-weight:bold;
+text-align:center;
+}
+
+.order{
+background:white;
+padding:15px;
+margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
+.queue{
+background:#007bff;
+color:white;
+padding:8px;
+border-radius:5px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
 .item{
 background:#f1f1f1;
-padding:8px;
+padding:6px;
 margin-top:5px;
 border-radius:5px;
 }
 
-.status{
-font-size:20px;
+.total{
 font-weight:bold;
 margin-top:10px;
 }
 
-button{
-width:100%;
-padding:12px;
-margin-top:20px;
-background:#007bff;
-color:white;
-border:none;
-cursor:pointer;
-border-radius:5px;
+.waiting{color:orange;}
+.preparing{color:blue;}
+.ready{color:green;}
+.completed{color:black;}
+
+.payment-pending{color:red;}
+.payment-approval{color:orange;}
+.payment-paid{color:green;}
+
+.info{
+margin-top:5px;
+font-weight:bold;
 }
+
 </style>
+
 </head>
 <body>
 
 <div class="navbar">
 <a href="menu.html">Menu</a>
 <a href="cart.html">Cart</a>
-<a href="orders.html">My Order</a>
+<a href="orders.html">My Orders</a>
 <a href="track.html">Track Order</a>
 <a href="admin.html">Admin</a>
 <a href="#" onclick="logout()">Logout</a>
@@ -89,15 +108,11 @@ border-radius:5px;
 
 <div class="main">
 
-<header>My Order Status</header>
-
-<div class="container">
-
-<div id="orderDetails">Loading...</div>
-
-<button onclick="goMenu()">Order More Food</button>
-
+<div id="currentlyServingBox" class="serving">
+Loading queue...
 </div>
+
+<div id="ordersList">Loading orders...</div>
 
 </div>
 
@@ -110,8 +125,8 @@ const supabaseClient = window.supabaseClient;
 
 let currentUser=null;
 
+init();
 
-/* INIT */
 async function init(){
 
 const { data:{ session } } =
@@ -126,65 +141,99 @@ return;
 
 currentUser=session.user;
 
-loadOrder();
+loadOrders();
 
 }
 
-init();
 
-
-/* LOAD ORDER */
-async function loadOrder(){
-
-const { data, error } =
-await supabaseClient
-.from("orders")
-.select("*")
-.eq("user_id", currentUser.id)
-.order("order_number",{ascending:false})
-.limit(1)
-.single();
-
-if(error){
-
-document.getElementById("orderDetails").innerHTML =
-"No order found";
-
-return;
-
-}
-
+/* LOAD ORDERS */
+async function loadOrders(){
 
 /* GET CURRENTLY SERVING */
 const { data: serving } =
 await supabaseClient
 .from("orders")
 .select("order_number")
+.not("order_number","is",null)
 .neq("status","Completed")
 .order("order_number",{ascending:true})
 .limit(1);
 
 let currentlyServing =
-serving.length > 0
+(serving && serving.length>0)
 ? serving[0].order_number
-: data.order_number;
+: 0;
+
+document.getElementById("currentlyServingBox").innerHTML =
+"Currently Serving: #" + currentlyServing;
 
 
-/* CALCULATE POSITION */
+/* GET USER ORDERS */
+const { data, error } =
+await supabaseClient
+.from("orders")
+.select("*")
+.eq("user_id", currentUser.id)
+.order("order_number",{ascending:false});
+
+if(error){
+
+ordersList.innerHTML="Error loading orders";
+return;
+
+}
+
+if(data.length===0){
+
+ordersList.innerHTML="No orders found";
+return;
+
+}
+
+let html="";
+
+data.forEach(order=>{
+
 let peopleAhead =
-data.order_number - currentlyServing;
+order.order_number-currentlyServing;
 
-if(peopleAhead<0)peopleAhead=0;
+if(peopleAhead<0) peopleAhead=0;
+
+let waitTime =
+peopleAhead * 2;
 
 
-/* ITEMS */
-let items=JSON.parse(data.items);
+/* STATUS CLASS */
+let statusClass="waiting";
 
+if(order.status==="Preparing") statusClass="preparing";
+if(order.status==="Ready") statusClass="ready";
+if(order.status==="Completed") statusClass="completed";
+
+
+/* PAYMENT CLASS */
+let paymentClass="payment-pending";
+
+if(order.payment_status==="Pending Approval")
+paymentClass="payment-approval";
+
+if(order.payment_status==="Paid")
+paymentClass="payment-paid";
+
+
+/* PARSE ITEMS */
 let itemsHTML="";
+let total=0;
+
+if(order.items){
+
+let items = JSON.parse(order.items);
 
 items.forEach(item=>{
 
-itemsHTML+=`
+total += item.price;
+
+itemsHTML += `
 <div class="item">
 ${item.item_name} - Ksh ${item.price}
 </div>
@@ -192,37 +241,56 @@ ${item.item_name} - Ksh ${item.price}
 
 });
 
+}
 
-document.getElementById("orderDetails").innerHTML=`
 
-<b>Your Queue Number:</b> #${data.order_number}<br><br>
+html+=`
 
-<b>Currently Serving:</b> #${currentlyServing}<br><br>
+<div class="order">
 
-<b>People Ahead:</b> ${peopleAhead}<br><br>
+<div class="queue">
+Queue Number: #${order.order_number}
+</div>
 
-<b>Status:</b> ${data.status}<br><br>
+<div class="info ${statusClass}">
+Order Status: ${order.status}
+</div>
 
-<b>Payment:</b> ${data.payment_status}<br><br>
+<div class="info ${paymentClass}">
+Payment Status: ${order.payment_status}
+</div>
 
-<b>Items:</b><br>
+<div class="info">
+People Ahead: ${peopleAhead}
+</div>
 
+<div class="info">
+Estimated Wait: ${waitTime} minutes
+</div>
+
+<br>
+
+<div>
+<b>Items:</b>
 ${itemsHTML}
+</div>
+
+<div class="total">
+Total Amount: Ksh ${total}
+</div>
+
+</div>
 
 `;
 
-}
+});
 
-
-/* AUTO REFRESH */
-setInterval(loadOrder,3000);
-
-
-function goMenu(){
-
-window.location.href="menu.html";
+ordersList.innerHTML=html;
 
 }
+
+
+setInterval(loadOrders,3000);
 
 
 async function logout(){
