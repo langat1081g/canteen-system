@@ -2,15 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Order</title>
 
 <style>
-
 body{
 font-family:Arial;
 background:#eef2f7;
-margin:0;
 }
 
 .container{
@@ -19,239 +16,105 @@ max-width:400px;
 margin:80px auto;
 padding:20px;
 border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
-
-input{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:1px solid #ccc;
-}
-
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-background:#007bff;
-color:white;
-border:none;
-cursor:pointer;
-border-radius:5px;
-}
-
-.result{
-margin-top:20px;
-padding:15px;
-background:#f1f1f1;
-border-radius:5px;
-}
-
-.ready{color:green;}
-.wait{color:orange;}
-.preparing{color:blue;}
-.complete{color:black;}
-
-.status{
-font-weight:bold;
-font-size:18px;
-margin-top:10px;
-}
-
 </style>
-
 </head>
 <body>
 
 <div class="container">
 
-<h2>Track Order (Realtime)</h2>
+<h2>Track Order</h2>
 
-<input type="number" id="orderNumber" placeholder="Enter Queue Number">
+<input type="number" id="orderNumber">
 
-<button onclick="startTracking()">Track Order</button>
+<button onclick="startTracking()">Track</button>
 
-<div id="result" class="result">
-Enter order number to track
-</div>
+<div id="result"></div>
 
 </div>
 
-<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 
-/* USE SHARED CLIENT */
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
-let currentOrderNumber = null;
-let realtimeChannel = null;
+let currentOrderNumber=null;
 
 
-/* START TRACKING */
+/* AUTO LOAD */
+function autoLoad(){
+
+const params = new URLSearchParams(window.location.search);
+
+const number = params.get("order_number");
+
+if(number){
+
+currentOrderNumber=parseInt(number);
+
+orderNumber.value=number;
+
+loadOrder();
+
+}
+
+}
+
+autoLoad();
+
+
 async function startTracking(){
 
-const number =
-document.getElementById("orderNumber").value;
+currentOrderNumber=parseInt(orderNumber.value);
 
-if(!number){
-alert("Enter order number");
-return;
-}
-
-currentOrderNumber = parseInt(number);
-
-await loadOrder();
-
-setupRealtime();
+loadOrder();
 
 }
 
 
-/* LOAD ORDER + CURRENTLY SERVING */
 async function loadOrder(){
 
-/* GET THIS ORDER */
-let { data: order, error } =
-await supabase
+if(!currentOrderNumber)return;
+
+const { data } =
+await supabaseClient
 .from("orders")
 .select("*")
-.eq("order_number", currentOrderNumber)
+.eq("order_number",currentOrderNumber)
 .single();
 
-if(error){
 
-document.getElementById("result").innerHTML =
-"Order not found";
-
-return;
-}
-
-
-/* GET CURRENTLY SERVING ORDER */
-let { data: serving } =
-await supabase
+const { data: serving } =
+await supabaseClient
 .from("orders")
 .select("order_number")
 .neq("status","Completed")
 .order("order_number",{ascending:true})
 .limit(1);
 
-let currentlyServing =
-(serving && serving.length > 0)
-? serving[0].order_number
-: order.order_number;
+
+let currentlyServing=serving[0].order_number;
+
+let peopleAhead=currentOrderNumber-currentlyServing;
+
+if(peopleAhead<0)peopleAhead=0;
 
 
-/* DISPLAY */
-displayOrder(order, currentlyServing);
+result.innerHTML=`
 
-}
-
-
-/* DISPLAY ORDER */
-function displayOrder(order, currentlyServing){
-
-let items = JSON.parse(order.items);
-
-let total = 0;
-let itemsHTML="";
-
-items.forEach(item=>{
-total += item.price;
-itemsHTML += `
-${item.item_name || item.name} - Ksh ${item.price}<br>
-`;
-});
-
-
-/* CALCULATE POSITION */
-let peopleAhead = order.order_number - currentlyServing;
-
-if(peopleAhead < 0) peopleAhead = 0;
-
-
-/* STATUS COLOR */
-let statusClass="wait";
-
-if(order.status==="Preparing") statusClass="preparing";
-if(order.status==="Ready") statusClass="ready";
-if(order.status==="Completed") statusClass="complete";
-
-
-document.getElementById("result").innerHTML = `
-
-<b>Currently Serving:</b> Order #${currentlyServing}<br><br>
-
-<b>Your Queue Number:</b> ${order.order_number}<br>
-
-<b>People Ahead:</b> ${peopleAhead}<br>
-
-<div class="status ${statusClass}">
-Status: ${order.status}
-</div>
-
-Payment: ${order.payment_status}<br><br>
-
-Items:<br>
-${itemsHTML}
-
-<br>
-Total: Ksh ${total}
+Currently Serving: #${currentlyServing}<br>
+Your Number: #${currentOrderNumber}<br>
+People Ahead: ${peopleAhead}<br>
+Status: ${data.status}
 
 `;
 
 }
 
 
-/* REALTIME LISTENER */
-function setupRealtime(){
-
-if(realtimeChannel){
-
-supabase.removeChannel(realtimeChannel);
-
-}
-
-realtimeChannel = supabase
-
-.channel("orders-realtime")
-
-.on(
-"postgres_changes",
-{
-event:"UPDATE",
-schema:"public",
-table:"orders"
-},
-
-(payload)=>{
-
-if(payload.new.order_number == currentOrderNumber){
-
-loadOrder();
-
-}
-
-}
-
-)
-
-.subscribe();
-
-}
-
-
-/* AUTO REFRESH EVERY 3 SECONDS */
-setInterval(()=>{
-if(currentOrderNumber){
-loadOrder();
-}
-},3000);
-
+setInterval(loadOrder,3000);
 
 </script>
 

@@ -50,14 +50,6 @@ border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
-input, select{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:1px solid #ccc;
-}
-
 button{
 width:100%;
 padding:12px;
@@ -67,26 +59,8 @@ color:white;
 border:none;
 cursor:pointer;
 border-radius:5px;
-font-size:16px;
-}
-
-button:disabled{
-background:gray;
-}
-
-.queue-box{
-background:#007bff;
-color:white;
-padding:15px;
-border-radius:8px;
-margin-top:15px;
-font-size:18px;
-font-weight:bold;
-text-align:center;
-display:none;
 }
 </style>
-
 </head>
 
 <body>
@@ -96,7 +70,6 @@ display:none;
 <a href="cart.html">Cart <span id="cartCount" class="cart-count">0</span></a>
 <a href="orders.html">My Order</a>
 <a href="track.html">Track Order</a>
-<a href="admin.html">Admin</a>
 <a href="#" onclick="logout()">Logout</a>
 </div>
 
@@ -106,14 +79,10 @@ display:none;
 <h3>Order Summary</h3>
 <div id="orderSummary"></div>
 
-<div id="queueBox" class="queue-box"></div>
-
 <form id="checkoutForm">
 
 <input type="text" id="name" placeholder="Student Name" required>
-
 <input type="text" id="phone" placeholder="Phone Number" required>
-
 <input type="time" id="time" required>
 
 <select id="payment" required>
@@ -131,13 +100,11 @@ Make Payment
 </div>
 
 
-<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 
-/* USE SHARED CLIENT */
 const supabaseClient = window.supabaseClient;
 
 let currentUser = null;
@@ -147,10 +114,10 @@ let cart = [];
 /* INIT */
 async function init(){
 
-const { data:{ session }, error } =
+const { data:{ session } } =
 await supabaseClient.auth.getSession();
 
-if(error || !session){
+if(!session){
 
 window.location.href="index.html";
 return;
@@ -166,7 +133,6 @@ loadCart();
 init();
 
 
-/* SUBMIT HANDLER */
 document
 .getElementById("checkoutForm")
 .addEventListener("submit", placeOrder);
@@ -175,18 +141,11 @@ document
 /* LOAD CART */
 async function loadCart(){
 
-const { data, error } =
+const { data } =
 await supabaseClient
 .from("cart")
 .select("*")
 .eq("user_id", currentUser.id);
-
-if(error){
-
-alert(error.message);
-return;
-
-}
 
 cart = data;
 
@@ -201,16 +160,6 @@ displaySummary();
 /* DISPLAY SUMMARY */
 function displaySummary(){
 
-const summary =
-document.getElementById("orderSummary");
-
-if(cart.length === 0){
-
-summary.innerHTML = "Cart empty";
-return;
-
-}
-
 let total = 0;
 let html = "";
 
@@ -224,7 +173,7 @@ html += `<p>${item.item_name} - Ksh ${item.price}</p>`;
 
 html += `<hr><strong>Total: Ksh ${total}</strong>`;
 
-summary.innerHTML = html;
+document.getElementById("orderSummary").innerHTML = html;
 
 }
 
@@ -234,54 +183,30 @@ async function placeOrder(event){
 
 event.preventDefault();
 
-const btn =
-document.getElementById("payBtn");
+const btn = document.getElementById("payBtn");
 
 btn.disabled = true;
 btn.innerText = "Processing...";
 
-if(cart.length === 0){
 
-alert("Cart empty");
-
-btn.disabled=false;
-btn.innerText="Make Payment";
-
-return;
-
-}
-
-const name =
-document.getElementById("name").value;
-
-const phone =
-document.getElementById("phone").value;
-
-const time =
-document.getElementById("time").value;
-
-const payment =
-document.getElementById("payment").value;
-
-
-/* INSERT ORDER */
 const { data, error } =
 await supabaseClient
 .from("orders")
 .insert([{
 
 user_id: currentUser.id,
-student_name: name,
-phone: phone,
-pickup_time: time,
-payment_method: payment,
+student_name: name.value,
+phone: phone.value,
+pickup_time: time.value,
+payment_method: payment.value,
 items: JSON.stringify(cart),
 status:"Waiting",
 payment_status:"Pending"
 
 }])
-.select()
+.select("id, order_number")
 .single();
+
 
 if(error){
 
@@ -295,14 +220,7 @@ return;
 }
 
 
-/* SHOW QUEUE NUMBER */
-const queueNumber = data.order_number;
-
-document.getElementById("queueBox").style.display="block";
-document.getElementById("queueBox").innerHTML =
-"Your Queue Number: #" + queueNumber;
-
-alert("Order placed successfully!\nYour Queue Number: #" + queueNumber);
+alert("Order placed!\nYour Queue Number: #" + data.order_number);
 
 
 /* CLEAR CART */
@@ -312,14 +230,10 @@ await supabaseClient
 .eq("user_id", currentUser.id);
 
 
-/* REDIRECT AFTER 3 SECONDS */
-setTimeout(()=>{
-
+/* REDIRECT */
 window.location.href =
 "payment.html?order_id=" + data.id +
-"&order_number=" + queueNumber;
-
-},3000);
+"&order_number=" + data.order_number;
 
 }
 

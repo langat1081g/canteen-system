@@ -44,6 +44,16 @@ padding:10px;
 margin-top:15px;
 border-radius:5px;
 }
+
+.queue{
+background:#007bff;
+color:white;
+padding:12px;
+border-radius:8px;
+margin-bottom:15px;
+font-weight:bold;
+font-size:18px;
+}
 </style>
 </head>
 <body>
@@ -52,7 +62,11 @@ border-radius:5px;
 
 <h2>Payment</h2>
 
-<div id="orderInfo">Loading...</div>
+<div id="queueBox" class="queue">
+Loading order...
+</div>
+
+<div id="orderInfo"></div>
 
 <div class="info">
 Pay via MPESA<br><br>
@@ -73,29 +87,33 @@ I HAVE PAID
 
 <script>
 
-/* USE SHARED CLIENT */
 const supabaseClient = window.supabaseClient;
 
 let currentOrder = null;
 let currentUser = null;
 
 
-/* GET ORDER ID */
+/* GET ORDER ID FROM URL */
 function getOrderId(){
+
 const params = new URLSearchParams(window.location.search);
+
 return params.get("order_id");
+
 }
 
 
 /* INIT */
 async function init(){
 
-const { data:{ session } } =
+const { data:{ session }, error } =
 await supabaseClient.auth.getSession();
 
-if(!session){
+if(error || !session){
+
 window.location.href="index.html";
 return;
+
 }
 
 currentUser = session.user;
@@ -111,8 +129,12 @@ async function loadOrder(){
 const orderId = getOrderId();
 
 if(!orderId){
-document.getElementById("orderInfo").innerHTML="Invalid order.";
+
+document.getElementById("queueBox").innerHTML =
+"Invalid order link";
+
 return;
+
 }
 
 const { data, error } =
@@ -120,25 +142,36 @@ await supabaseClient
 .from("orders")
 .select("*")
 .eq("id", orderId)
-.eq("user_id", currentUser.id)
 .single();
 
 if(error){
-document.getElementById("orderInfo").innerHTML="Order not found.";
+
+document.getElementById("queueBox").innerHTML =
+"Order not found";
+
 return;
+
 }
 
 currentOrder = data;
 
-const items = JSON.parse(data.items);
+/* SHOW QUEUE NUMBER */
+document.getElementById("queueBox").innerHTML =
+"Your Queue Number: #" + data.order_number;
+
+
+/* SHOW ORDER DETAILS */
+let items = JSON.parse(data.items);
 
 let total = 0;
-items.forEach(item=> total += item.price);
+
+items.forEach(item=>{
+total += item.price;
+});
 
 document.getElementById("orderInfo").innerHTML = `
-Order ID: <b>${data.id}</b><br><br>
 Total Amount: <b>Ksh ${total}</b><br><br>
-Status: <b>${data.payment_status}</b>
+Payment Status: <b>${data.payment_status}</b>
 `;
 
 }
@@ -147,34 +180,56 @@ Status: <b>${data.payment_status}</b>
 /* CONFIRM PAYMENT */
 async function confirmPayment(){
 
-if(!currentOrder) return;
+if(!currentOrder){
+
+alert("Order not loaded yet");
+return;
+
+}
 
 const btn = document.getElementById("payBtn");
 
 btn.disabled = true;
 btn.innerText = "Processing...";
 
+
+/* UPDATE PAYMENT STATUS */
 const { error } =
 await supabaseClient
 .from("orders")
-.update({ payment_status:"Pending Approval" })
+.update({
+payment_status:"Pending Approval"
+})
 .eq("id", currentOrder.id);
 
 if(error){
+
 alert(error.message);
+
 btn.disabled=false;
 btn.innerText="I HAVE PAID";
+
 return;
-}
-
-alert("Payment submitted successfully");
-
-window.location.href="orders.html";
 
 }
 
 
-/* BUTTON CLICK */
+/* SUCCESS MESSAGE */
+alert(
+"Payment submitted successfully!\n\n" +
+"Your Queue Number: #" + currentOrder.order_number +
+"\n\nRedirecting to track your order..."
+);
+
+
+/* REDIRECT TO TRACK PAGE */
+window.location.href =
+"track.html?order_number=" + currentOrder.order_number;
+
+}
+
+
+/* BUTTON EVENT */
 document
 .getElementById("payBtn")
 .addEventListener("click", confirmPayment);

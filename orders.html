@@ -19,7 +19,6 @@ left: 0;
 width: 100%;
 background: #333;
 padding: 15px;
-z-index: 1000;
 text-align:center;
 }
 
@@ -65,20 +64,6 @@ font-weight:bold;
 margin-top:10px;
 }
 
-.payment{
-font-size:18px;
-font-weight:bold;
-margin-top:10px;
-}
-
-.ready{color:green;}
-.wait{color:#ff9800;}
-.complete{color:black;}
-
-.pending{color:red;}
-.pendingApproval{color:orange;}
-.paid{color:green;}
-
 button{
 width:100%;
 padding:12px;
@@ -116,61 +101,51 @@ border-radius:5px;
 
 </div>
 
-<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 
-/* USE SHARED CLIENT */
-const supabase = window.supabaseClient;
+const supabaseClient = window.supabaseClient;
 
-let currentUser = null;
+let currentUser=null;
 
 
 /* INIT */
 async function init(){
 
-const { data:{ session }, error } =
-await supabase.auth.getSession();
+const { data:{ session } } =
+await supabaseClient.auth.getSession();
 
-if(error || !session){
+if(!session){
 
 window.location.href="index.html";
 return;
 
 }
 
-currentUser = session.user;
+currentUser=session.user;
 
 loadOrder();
 
 }
 
+init();
+
 
 /* LOAD ORDER */
 async function loadOrder(){
 
-if(!currentUser) return;
-
-let { data, error } =
-await supabase
+const { data, error } =
+await supabaseClient
 .from("orders")
 .select("*")
 .eq("user_id", currentUser.id)
 .order("order_number",{ascending:false})
-.limit(1);
+.limit(1)
+.single();
 
 if(error){
-
-document.getElementById("orderDetails").innerHTML =
-"Error loading order";
-
-return;
-
-}
-
-if(!data || data.length===0){
 
 document.getElementById("orderDetails").innerHTML =
 "No order found";
@@ -179,29 +154,31 @@ return;
 
 }
 
-let order = data[0];
 
-
-/* QUEUE POSITION */
-let { data: queue } =
-await supabase
+/* GET CURRENTLY SERVING */
+const { data: serving } =
+await supabaseClient
 .from("orders")
 .select("order_number")
-.lte("order_number", order.order_number);
+.neq("status","Completed")
+.order("order_number",{ascending:true})
+.limit(1);
 
-let position = queue.length - 1;
+let currentlyServing =
+serving.length > 0
+? serving[0].order_number
+: data.order_number;
 
-let waitTime = position * 2;
 
+/* CALCULATE POSITION */
+let peopleAhead =
+data.order_number - currentlyServing;
 
-/* STATUS */
-let status = order.status || "Waiting";
-
-let payment = order.payment_status || "Pending";
+if(peopleAhead<0)peopleAhead=0;
 
 
 /* ITEMS */
-let items = JSON.parse(order.items);
+let items=JSON.parse(data.items);
 
 let itemsHTML="";
 
@@ -209,44 +186,26 @@ items.forEach(item=>{
 
 itemsHTML+=`
 <div class="item">
-${item.item_name || item.name} - Ksh ${item.price}
+${item.item_name} - Ksh ${item.price}
 </div>
 `;
 
 });
 
 
-/* STATUS COLOR */
-let statusClass="wait";
-
-if(status==="Ready") statusClass="ready";
-if(status==="Completed") statusClass="complete";
-
-
-/* PAYMENT COLOR */
-let paymentClass="pending";
-
-if(payment==="Pending Approval") paymentClass="pendingApproval";
-if(payment==="Paid") paymentClass="paid";
-
-
 document.getElementById("orderDetails").innerHTML=`
 
-<p><strong>Queue Number:</strong> ${order.order_number}</p>
+<b>Your Queue Number:</b> #${data.order_number}<br><br>
 
-<p><strong>Students ahead:</strong> ${position}</p>
+<b>Currently Serving:</b> #${currentlyServing}<br><br>
 
-<p><strong>Estimated wait:</strong> ${waitTime} minutes</p>
+<b>People Ahead:</b> ${peopleAhead}<br><br>
 
-<p class="payment ${paymentClass}">
-Payment: ${payment}
-</p>
+<b>Status:</b> ${data.status}<br><br>
 
-<p class="status ${statusClass}">
-Order Status: ${status}
-</p>
+<b>Payment:</b> ${data.payment_status}<br><br>
 
-<p><strong>Items:</strong></p>
+<b>Items:</b><br>
 
 ${itemsHTML}
 
@@ -255,18 +214,8 @@ ${itemsHTML}
 }
 
 
-/* AUTO REFRESH EVERY 3 SECONDS */
+/* AUTO REFRESH */
 setInterval(loadOrder,3000);
-
-
-/* LOGOUT */
-async function logout(){
-
-await supabase.auth.signOut();
-
-window.location.href="index.html";
-
-}
 
 
 function goMenu(){
@@ -276,7 +225,13 @@ window.location.href="menu.html";
 }
 
 
-init();
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href="index.html";
+
+}
 
 </script>
 
