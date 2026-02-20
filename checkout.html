@@ -73,6 +73,18 @@ font-size:16px;
 button:disabled{
 background:gray;
 }
+
+.queue-box{
+background:#007bff;
+color:white;
+padding:15px;
+border-radius:8px;
+margin-top:15px;
+font-size:18px;
+font-weight:bold;
+text-align:center;
+display:none;
+}
 </style>
 
 </head>
@@ -93,6 +105,8 @@ background:gray;
 
 <h3>Order Summary</h3>
 <div id="orderSummary"></div>
+
+<div id="queueBox" class="queue-box"></div>
 
 <form id="checkoutForm">
 
@@ -138,7 +152,7 @@ await supabaseClient.auth.getSession();
 
 if(error || !session){
 
-window.location.href="auth.html";
+window.location.href="index.html";
 return;
 
 }
@@ -219,14 +233,12 @@ summary.innerHTML = html;
 async function placeOrder(event){
 
 event.preventDefault();
-event.stopPropagation();
 
 const btn =
 document.getElementById("payBtn");
 
 btn.disabled = true;
 btn.innerText = "Processing...";
-
 
 if(cart.length === 0){
 
@@ -238,7 +250,6 @@ btn.innerText="Make Payment";
 return;
 
 }
-
 
 const name =
 document.getElementById("name").value;
@@ -272,7 +283,6 @@ payment_status:"Pending"
 .select()
 .single();
 
-
 if(error){
 
 alert(error.message);
@@ -285,6 +295,16 @@ return;
 }
 
 
+/* SHOW QUEUE NUMBER */
+const queueNumber = data.order_number;
+
+document.getElementById("queueBox").style.display="block";
+document.getElementById("queueBox").innerHTML =
+"Your Queue Number: #" + queueNumber;
+
+alert("Order placed successfully!\nYour Queue Number: #" + queueNumber);
+
+
 /* CLEAR CART */
 await supabaseClient
 .from("cart")
@@ -292,9 +312,14 @@ await supabaseClient
 .eq("user_id", currentUser.id);
 
 
-/* REDIRECT */
+/* REDIRECT AFTER 3 SECONDS */
+setTimeout(()=>{
+
 window.location.href =
-"payment.html?order_id=" + data.id;
+"payment.html?order_id=" + data.id +
+"&order_number=" + queueNumber;
+
+},3000);
 
 }
 
@@ -304,7 +329,7 @@ async function logout(){
 
 await supabaseClient.auth.signOut();
 
-window.location.href="auth.html";
+window.location.href="index.html";
 
 }
 

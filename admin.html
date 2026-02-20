@@ -44,6 +44,16 @@ justify-content:space-between;
 align-items:center;
 }
 
+.serving{
+background:#007bff;
+color:white;
+padding:10px;
+border-radius:8px;
+margin-bottom:20px;
+font-size:18px;
+font-weight:bold;
+}
+
 </style>
 
 </head>
@@ -52,6 +62,10 @@ align-items:center;
 <div class="header">
 <h2>Admin Dashboard</h2>
 <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div id="currentlyServing" class="serving">
+Loading currently serving...
 </div>
 
 <div id="orders">Loading orders...</div>
@@ -66,14 +80,13 @@ align-items:center;
 /* CHANGE THIS TO YOUR ADMIN EMAIL */
 const ADMIN_EMAIL = "langat3080g@gmail.com";
 
-
 /* USE SHARED CLIENT */
 const client = window.supabaseClient;
 
 let currentAdmin = null;
 
 
-/* RELIABLE ADMIN PROTECTION */
+/* ADMIN PROTECTION */
 async function protectAdmin(){
 
 const { data, error } =
@@ -82,14 +95,13 @@ await client.auth.getSession();
 if(error || !data.session){
 
 alert("Please login first");
-window.location.href="auth.html";
+window.location.href="index.html";
 return;
 
 }
 
 const user = data.session.user;
 
-/* CHECK ADMIN EMAIL */
 if(user.email !== ADMIN_EMAIL){
 
 alert("Access denied. Admin only.");
@@ -101,11 +113,33 @@ return;
 currentAdmin = user;
 
 loadOrders();
+loadCurrentlyServing();
 
 }
 
 protectAdmin();
 
+
+/* LOAD CURRENTLY SERVING */
+async function loadCurrentlyServing(){
+
+let { data } =
+await client
+.from("orders")
+.select("order_number,status")
+.neq("status","Completed")
+.order("order_number",{ascending:true})
+.limit(1);
+
+let servingText =
+(data && data.length > 0)
+? "Currently Serving: Order #" + data[0].order_number
+: "No active orders";
+
+document.getElementById("currentlyServing").innerHTML =
+servingText;
+
+}
 
 
 /* LOAD ORDERS */
@@ -184,7 +218,6 @@ document.getElementById("orders").innerHTML = html;
 }
 
 
-
 /* APPROVE PAYMENT */
 async function approvePayment(id){
 
@@ -204,10 +237,9 @@ return;
 
 }
 
-loadOrders();
+refreshAll();
 
 }
-
 
 
 /* UPDATE STATUS */
@@ -228,10 +260,35 @@ return;
 
 }
 
-loadOrders();
+refreshAll();
 
 }
 
+
+/* REFRESH EVERYTHING */
+function refreshAll(){
+
+loadOrders();
+loadCurrentlyServing();
+
+}
+
+
+/* REALTIME AUTO UPDATE */
+client
+.channel("admin-orders-realtime")
+.on(
+"postgres_changes",
+{
+event:"UPDATE",
+schema:"public",
+table:"orders"
+},
+()=>{
+refreshAll();
+}
+)
+.subscribe();
 
 
 /* LOGOUT */
@@ -239,7 +296,7 @@ async function logout(){
 
 await client.auth.signOut();
 
-window.location.href="auth.html";
+window.location.href="index.html";
 
 }
 

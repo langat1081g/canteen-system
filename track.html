@@ -102,7 +102,7 @@ alert("Enter order number");
 return;
 }
 
-currentOrderNumber = number;
+currentOrderNumber = parseInt(number);
 
 await loadOrder();
 
@@ -111,10 +111,11 @@ setupRealtime();
 }
 
 
-/* LOAD ORDER */
+/* LOAD ORDER + CURRENTLY SERVING */
 async function loadOrder(){
 
-let { data, error } =
+/* GET THIS ORDER */
+let { data: order, error } =
 await supabase
 .from("orders")
 .select("*")
@@ -129,13 +130,30 @@ document.getElementById("result").innerHTML =
 return;
 }
 
-displayOrder(data);
+
+/* GET CURRENTLY SERVING ORDER */
+let { data: serving } =
+await supabase
+.from("orders")
+.select("order_number")
+.neq("status","Completed")
+.order("order_number",{ascending:true})
+.limit(1);
+
+let currentlyServing =
+(serving && serving.length > 0)
+? serving[0].order_number
+: order.order_number;
+
+
+/* DISPLAY */
+displayOrder(order, currentlyServing);
 
 }
 
 
 /* DISPLAY ORDER */
-function displayOrder(order){
+function displayOrder(order, currentlyServing){
 
 let items = JSON.parse(order.items);
 
@@ -149,11 +167,30 @@ ${item.item_name || item.name} - Ksh ${item.price}<br>
 `;
 });
 
+
+/* CALCULATE POSITION */
+let peopleAhead = order.order_number - currentlyServing;
+
+if(peopleAhead < 0) peopleAhead = 0;
+
+
+/* STATUS COLOR */
+let statusClass="wait";
+
+if(order.status==="Preparing") statusClass="preparing";
+if(order.status==="Ready") statusClass="ready";
+if(order.status==="Completed") statusClass="complete";
+
+
 document.getElementById("result").innerHTML = `
 
-Queue Number: <b>${order.order_number}</b><br>
+<b>Currently Serving:</b> Order #${currentlyServing}<br><br>
 
-<div class="status">
+<b>Your Queue Number:</b> ${order.order_number}<br>
+
+<b>People Ahead:</b> ${peopleAhead}<br>
+
+<div class="status ${statusClass}">
 Status: ${order.status}
 </div>
 
@@ -195,7 +232,7 @@ table:"orders"
 
 if(payload.new.order_number == currentOrderNumber){
 
-displayOrder(payload.new);
+loadOrder();
 
 }
 
@@ -206,6 +243,15 @@ displayOrder(payload.new);
 .subscribe();
 
 }
+
+
+/* AUTO REFRESH EVERY 3 SECONDS */
+setInterval(()=>{
+if(currentOrderNumber){
+loadOrder();
+}
+},3000);
+
 
 </script>
 
