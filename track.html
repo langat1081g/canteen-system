@@ -3,117 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Track My Order</title>
+<title>Track Order</title>
 
 <style>
 
 body{
-font-family: Arial;
+font-family:Arial;
 background:#eef2f7;
 margin:0;
 }
 
-.navbar{
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-background: #333;
-padding: 15px;
-z-index: 1000;
-text-align:center;
-}
-
-.navbar a{
-color:white;
-margin:15px;
-text-decoration:none;
-font-weight:bold;
-}
-
-.cart-count{
-background:red;
-color:white;
-border-radius:50%;
-padding:3px 8px;
-font-size:12px;
-margin-left:5px;
-}
-
-.main{
-margin-top:80px;
-}
-
-header{
-background:#28a745;
-color:white;
-text-align:center;
-padding:15px;
-font-size:24px;
-}
-
 .container{
 background:white;
-width:90%;
 max-width:400px;
-margin:30px auto;
+margin:80px auto;
 padding:20px;
 border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
-.result{
-margin-top:20px;
-font-size:18px;
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+border:1px solid #ccc;
 }
 
-.ready{
-color:green;
-font-weight:bold;
-}
-
-.wait{
-color:orange;
-font-weight:bold;
-}
-
-.item{
-background:#f1f1f1;
-padding:8px;
-margin-top:5px;
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#007bff;
+color:white;
+border:none;
+cursor:pointer;
 border-radius:5px;
 }
 
+.result{
+margin-top:20px;
+padding:15px;
+background:#f1f1f1;
+border-radius:5px;
+}
+
+.ready{color:green;}
+.wait{color:orange;}
+.preparing{color:blue;}
+.complete{color:black;}
+
+.status{
+font-weight:bold;
+font-size:18px;
+margin-top:10px;
+}
+
 </style>
+
 </head>
 <body>
 
-<div class="navbar">
-
-<a href="menu.html">Menu</a>
-
-<a href="cart.html">
-Cart <span class="cart-count" id="cartCount">0</span>
-</a>
-
-<a href="orders.html">My Order</a>
-
-<a href="track.html">Track Order</a>
-
-<a href="#" onclick="logout()">Logout</a>
-
-</div>
-
-<div class="main">
-
-<header>Track My Order</header>
-
 <div class="container">
 
-<div class="result" id="result">
-Loading your order...
-</div>
+<h2>Track Order (Realtime)</h2>
 
+<input type="number" id="orderNumber" placeholder="Enter Queue Number">
+
+<button onclick="startTracking()">Track Order</button>
+
+<div id="result" class="result">
+Enter order number to track
 </div>
 
 </div>
@@ -122,125 +82,128 @@ Loading your order...
 
 <script>
 
-const SUPABASE_URL =
-"https://hbofboaoixzxqzouncyj.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I";
-
-const supabase =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+const supabase = window.supabase.createClient(
+"https://hbofboaoixzxqzouncyj.supabase.co",
+"sb_publishable_Hgp6-35ojerC2XGJVfq2yg_cyTd3L4I"
 );
 
-/* UPDATE CART COUNT */
-let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+let currentOrderNumber = null;
+let realtimeChannel = null;
 
-document.getElementById("cartCount").innerText =
-cart.length;
 
-/* LOAD USER ORDER */
-async function trackOrder(){
+/* START TRACKING */
+async function startTracking(){
 
-/* GET AUTH USER */
-let { data:{ user } } =
-await supabase.auth.getUser();
+const number =
+document.getElementById("orderNumber").value;
 
-if(!user){
-
-window.location.href="auth.html";
+if(!number){
+alert("Enter order number");
 return;
+}
+
+currentOrderNumber = number;
+
+loadOrder();
+
+setupRealtime();
 
 }
 
-/* GET USER ORDER */
+
+/* LOAD ORDER */
+async function loadOrder(){
+
 let { data, error } =
 await supabase
 .from("orders")
 .select("*")
-.eq("user_id", user.id)
-.order("order_number",{ascending:false})
-.limit(1);
+.eq("order_number", currentOrderNumber)
+.single();
 
-if(!data || data.length===0){
+if(error){
 
 document.getElementById("result").innerHTML =
-"No order found";
+"Order not found";
 
 return;
+}
+
+displayOrder(data);
 
 }
 
-let order = data[0];
 
-/* GET QUEUE POSITION */
-let { data: queue } =
-await supabase
-.from("orders")
-.select("order_number")
-.lte("order_number",order.order_number);
+/* DISPLAY ORDER */
+function displayOrder(order){
 
-let position =
-queue.length - 1;
+let items = JSON.parse(order.items);
 
-let waitTime =
-position * 2;
-
-let status =
-position===0?"READY":"WAITING";
-
-let items =
-JSON.parse(order.items);
-
+let total = 0;
 let itemsHTML="";
 
 items.forEach(item=>{
-
-itemsHTML+=`
-<div class="item">
-${item.name} - Ksh ${item.price}
-</div>`;
-
+total += item.price;
+itemsHTML += `
+${item.item_name || item.name} - Ksh ${item.price}<br>
+`;
 });
 
 document.getElementById("result").innerHTML = `
 
-<p><strong>Your Queue Number:</strong>
-${order.order_number}</p>
+Queue Number: <b>${order.order_number}</b><br>
 
-<p><strong>Students ahead:</strong>
-${position}</p>
+<div class="status">
+Status: ${order.status}
+</div>
 
-<p><strong>Estimated wait:</strong>
-${waitTime} minutes</p>
+Payment: ${order.payment_status}<br><br>
 
-<p class="${
-status==="READY"?"ready":"wait"
-}">
-Status: ${status}
-</p>
-
-<p><strong>Your Items:</strong></p>
-
+Items:<br>
 ${itemsHTML}
+
+<br>
+Total: Ksh ${total}
 
 `;
 
 }
 
-/* AUTO REFRESH */
-setInterval(trackOrder,5000);
 
-trackOrder();
+/* REALTIME LISTENER */
+function setupRealtime(){
 
-/* LOGOUT */
-async function logout(){
+if(realtimeChannel){
 
-await supabase.auth.signOut();
+supabase.removeChannel(realtimeChannel);
 
-window.location.href="auth.html";
+}
+
+realtimeChannel = supabase
+
+.channel("orders-realtime")
+
+.on(
+"postgres_changes",
+{
+event:"UPDATE",
+schema:"public",
+table:"orders"
+},
+
+(payload)=>{
+
+if(payload.new.order_number == currentOrderNumber){
+
+displayOrder(payload.new);
+
+}
+
+}
+
+)
+
+.subscribe();
 
 }
 
