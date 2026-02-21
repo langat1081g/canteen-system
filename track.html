@@ -5,6 +5,7 @@
 <title>Track Order</title>
 
 <style>
+
 body{
 font-family:Arial;
 background:#eef2f7;
@@ -17,6 +18,49 @@ margin:80px auto;
 padding:20px;
 border-radius:10px;
 }
+
+/* MESSAGE BOX */
+#msgBox{
+margin-top:10px;
+font-weight:bold;
+}
+
+.error{
+color:red;
+}
+
+.success{
+color:green;
+}
+
+.serving{
+background:#28a745;
+color:white;
+padding:10px;
+border-radius:6px;
+margin-top:10px;
+}
+
+.queue{
+background:#007bff;
+color:white;
+padding:10px;
+border-radius:6px;
+margin-top:10px;
+}
+
+.item{
+background:#f1f1f1;
+padding:6px;
+margin-top:5px;
+border-radius:5px;
+}
+
+.total{
+margin-top:10px;
+font-weight:bold;
+}
+
 </style>
 </head>
 <body>
@@ -25,9 +69,17 @@ border-radius:10px;
 
 <h2>Track Order</h2>
 
-<input type="number" id="orderNumber">
+<div id="msgBox"></div>
 
-<button onclick="startTracking()">Track</button>
+<input 
+type="number" 
+id="orderNumber"
+placeholder="Enter queue number"
+>
+
+<button onclick="startTracking()">
+Track
+</button>
 
 <div id="result"></div>
 
@@ -42,17 +94,32 @@ const supabaseClient = window.supabaseClient;
 
 let currentOrderNumber=null;
 
+const msgBox =
+document.getElementById("msgBox");
 
-/* AUTO LOAD */
+
+/* MESSAGE FUNCTION */
+function showMessage(message,type){
+
+msgBox.innerHTML=message;
+msgBox.className=type;
+
+}
+
+
+/* AUTO LOAD FROM URL */
 function autoLoad(){
 
-const params = new URLSearchParams(window.location.search);
+const params =
+new URLSearchParams(window.location.search);
 
-const number = params.get("order_number");
+const number =
+params.get("order_number");
 
 if(number){
 
-currentOrderNumber=parseInt(number);
+currentOrderNumber =
+parseInt(number);
 
 orderNumber.value=number;
 
@@ -65,27 +132,56 @@ loadOrder();
 autoLoad();
 
 
-async function startTracking(){
+/* START TRACKING */
+function startTracking(){
 
-currentOrderNumber=parseInt(orderNumber.value);
+const number =
+parseInt(orderNumber.value);
+
+if(!number){
+
+showMessage(
+"Enter a valid queue number",
+"error"
+);
+return;
+
+}
+
+currentOrderNumber=number;
 
 loadOrder();
 
 }
 
 
+/* LOAD ORDER */
 async function loadOrder(){
 
 if(!currentOrderNumber)return;
 
-const { data } =
+
+/* GET ORDER */
+const { data, error } =
 await supabaseClient
 .from("orders")
 .select("*")
 .eq("order_number",currentOrderNumber)
 .single();
 
+if(error){
 
+showMessage(
+"Order not found",
+"error"
+);
+
+return;
+
+}
+
+
+/* GET CURRENTLY SERVING */
 const { data: serving } =
 await supabaseClient
 .from("orders")
@@ -94,26 +190,81 @@ await supabaseClient
 .order("order_number",{ascending:true})
 .limit(1);
 
+let currentlyServing=0;
 
-let currentlyServing=serving[0].order_number;
+if(serving && serving.length>0){
 
-let peopleAhead=currentOrderNumber-currentlyServing;
+currentlyServing=
+serving[0].order_number;
+
+}
+
+
+let peopleAhead=
+currentOrderNumber-currentlyServing;
 
 if(peopleAhead<0)peopleAhead=0;
 
 
+/* PARSE ITEMS */
+let itemsHTML="";
+let total=0;
+
+if(data.items){
+
+let items=
+JSON.parse(data.items);
+
+items.forEach(item=>{
+
+total+=item.price;
+
+itemsHTML+=`
+<div class="item">
+${item.item_name} - Ksh ${item.price}
+</div>
+`;
+
+});
+
+}
+
+
+/* DISPLAY RESULT */
 result.innerHTML=`
 
-Currently Serving: #${currentlyServing}<br>
-Your Number: #${currentOrderNumber}<br>
+<div class="serving">
+Currently Serving: #${currentlyServing}
+</div>
+
+<div class="queue">
+Your Queue Number: #${currentOrderNumber}
+</div>
+
+<br>
+
 People Ahead: ${peopleAhead}<br>
-Status: ${data.status}
+
+Order Status: ${data.status}<br>
+
+Payment Status: ${data.payment_status}<br>
+
+<br>
+
+<b>Items:</b>
+
+${itemsHTML}
+
+<div class="total">
+Total Amount: Ksh ${total}
+</div>
 
 `;
 
 }
 
 
+/* AUTO REFRESH */
 setInterval(loadOrder,3000);
 
 </script>

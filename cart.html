@@ -105,6 +105,21 @@ color:gray;
 margin-top:30px;
 }
 
+/* MESSAGE BOX */
+#msgBox{
+text-align:center;
+margin-top:10px;
+font-weight:bold;
+}
+
+.success{
+color:green;
+}
+
+.error{
+color:red;
+}
+
 </style>
 </head>
 <body>
@@ -129,6 +144,8 @@ Cart <span class="cart-count" id="cartCount">0</span>
 
 <header>Your Cart</header>
 
+<div id="msgBox"></div>
+
 <div class="container">
 
 <div id="cartList"></div>
@@ -143,38 +160,51 @@ Proceed to Checkout
 
 </div>
 
-<!-- REQUIRED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 
-/* USE SHARED CLIENT */
 const client = window.supabaseClient;
 
 let currentUser = null;
 let cart = [];
 
+const msgBox =
+document.getElementById("msgBox");
 
-/* FIXED AUTH HANDLING */
+
+/* MESSAGE FUNCTION */
+function showMessage(message,type){
+
+msgBox.innerHTML=message;
+msgBox.className=type;
+
+setTimeout(()=>{
+msgBox.innerHTML="";
+},3000);
+
+}
+
+
+/* AUTH HANDLING */
 client.auth.onAuthStateChange(async (event, session) => {
 
 if(!session){
 
-window.location.href="auth.html";
+window.location.href="index.html";
 return;
 
 }
 
 currentUser = session.user;
 
-/* LOAD CART */
 loadCart();
 
 });
 
 
-/* LOAD CART FROM SUPABASE */
+/* LOAD CART */
 async function loadCart(){
 
 const { data, error } =
@@ -182,12 +212,11 @@ await client
 .from("cart")
 .select("*")
 .eq("user_id", currentUser.id)
-.order("created_at", { ascending: true });
+.order("created_at",{ascending:true});
 
 if(error){
 
-console.log(error);
-alert("Error loading cart");
+showMessage("Error loading cart","error");
 return;
 
 }
@@ -200,7 +229,7 @@ displayCart();
 }
 
 
-/* UPDATE CART COUNT */
+/* UPDATE COUNT */
 function updateCartCount(){
 
 document.getElementById("cartCount").innerText =
@@ -230,7 +259,7 @@ return;
 
 }
 
-cart.forEach((item)=>{
+cart.forEach(item=>{
 
 total += item.price;
 
@@ -272,10 +301,12 @@ await client
 
 if(error){
 
-alert("Error removing item");
+showMessage("Error removing item","error");
 return;
 
 }
+
+showMessage("Item removed","success");
 
 loadCart();
 
@@ -287,7 +318,7 @@ function checkout(){
 
 if(cart.length === 0){
 
-alert("Your cart is empty");
+showMessage("Your cart is empty","error");
 return;
 
 }
@@ -302,7 +333,7 @@ async function logout(){
 
 await client.auth.signOut();
 
-window.location.href="auth.html";
+window.location.href="index.html";
 
 }
 

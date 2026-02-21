@@ -92,6 +92,21 @@ margin-top:5px;
 font-weight:bold;
 }
 
+/* MESSAGE BOX */
+#msgBox{
+text-align:center;
+margin-bottom:15px;
+font-weight:bold;
+}
+
+.error{
+color:red;
+}
+
+.success{
+color:green;
+}
+
 </style>
 
 </head>
@@ -107,6 +122,8 @@ font-weight:bold;
 </div>
 
 <div class="main">
+
+<div id="msgBox"></div>
 
 <div id="currentlyServingBox" class="serving">
 Loading queue...
@@ -125,14 +142,28 @@ const supabaseClient = window.supabaseClient;
 
 let currentUser=null;
 
+const msgBox =
+document.getElementById("msgBox");
+
+
+/* MESSAGE FUNCTION */
+function showMessage(message,type){
+
+msgBox.innerHTML=message;
+msgBox.className=type;
+
+}
+
+
+/* INIT */
 init();
 
 async function init(){
 
-const { data:{ session } } =
+const { data:{ session }, error } =
 await supabaseClient.auth.getSession();
 
-if(!session){
+if(error || !session){
 
 window.location.href="index.html";
 return;
@@ -149,8 +180,10 @@ loadOrders();
 /* LOAD ORDERS */
 async function loadOrders(){
 
+try{
+
 /* GET CURRENTLY SERVING */
-const { data: serving } =
+const { data: serving, error: servingError } =
 await supabaseClient
 .from("orders")
 .select("order_number")
@@ -158,6 +191,13 @@ await supabaseClient
 .neq("status","Completed")
 .order("order_number",{ascending:true})
 .limit(1);
+
+if(servingError){
+
+showMessage("Error loading queue","error");
+return;
+
+}
 
 let currentlyServing =
 (serving && serving.length>0)
@@ -178,12 +218,12 @@ await supabaseClient
 
 if(error){
 
-ordersList.innerHTML="Error loading orders";
+showMessage("Error loading your orders","error");
 return;
 
 }
 
-if(data.length===0){
+if(!data || data.length===0){
 
 ordersList.innerHTML="No orders found";
 return;
@@ -221,7 +261,7 @@ if(order.payment_status==="Paid")
 paymentClass="payment-paid";
 
 
-/* PARSE ITEMS */
+/* ITEMS */
 let itemsHTML="";
 let total=0;
 
@@ -287,12 +327,20 @@ Total Amount: Ksh ${total}
 
 ordersList.innerHTML=html;
 
+}catch(err){
+
+showMessage("Unexpected error occurred","error");
+
+}
+
 }
 
 
+/* AUTO REFRESH */
 setInterval(loadOrders,3000);
 
 
+/* LOGOUT */
 async function logout(){
 
 await supabaseClient.auth.signOut();

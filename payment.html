@@ -54,6 +54,21 @@ margin-bottom:15px;
 font-weight:bold;
 font-size:18px;
 }
+
+/* MESSAGE BOX */
+#msgBox{
+margin-top:10px;
+font-weight:bold;
+}
+
+.success{
+color:green;
+}
+
+.error{
+color:red;
+}
+
 </style>
 </head>
 <body>
@@ -65,6 +80,8 @@ font-size:18px;
 <div id="queueBox" class="queue">
 Loading order...
 </div>
+
+<div id="msgBox"></div>
 
 <div id="orderInfo"></div>
 
@@ -81,7 +98,6 @@ I HAVE PAID
 
 </div>
 
-<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
@@ -92,11 +108,24 @@ const supabaseClient = window.supabaseClient;
 let currentOrder = null;
 let currentUser = null;
 
+const msgBox =
+document.getElementById("msgBox");
 
-/* GET ORDER ID FROM URL */
+
+/* MESSAGE FUNCTION */
+function showMessage(message,type){
+
+msgBox.innerHTML=message;
+msgBox.className=type;
+
+}
+
+
+/* GET ORDER ID */
 function getOrderId(){
 
-const params = new URLSearchParams(window.location.search);
+const params =
+new URLSearchParams(window.location.search);
 
 return params.get("order_id");
 
@@ -155,13 +184,15 @@ return;
 
 currentOrder = data;
 
+
 /* SHOW QUEUE NUMBER */
 document.getElementById("queueBox").innerHTML =
 "Your Queue Number: #" + data.order_number;
 
 
 /* SHOW ORDER DETAILS */
-let items = JSON.parse(data.items);
+let items =
+JSON.parse(data.items);
 
 let total = 0;
 
@@ -182,18 +213,21 @@ async function confirmPayment(){
 
 if(!currentOrder){
 
-alert("Order not loaded yet");
+showMessage(
+"Order not loaded yet",
+"error"
+);
 return;
 
 }
 
-const btn = document.getElementById("payBtn");
+const btn =
+document.getElementById("payBtn");
 
 btn.disabled = true;
 btn.innerText = "Processing...";
 
 
-/* UPDATE PAYMENT STATUS */
 const { error } =
 await supabaseClient
 .from("orders")
@@ -202,9 +236,13 @@ payment_status:"Pending Approval"
 })
 .eq("id", currentOrder.id);
 
+
 if(error){
 
-alert(error.message);
+showMessage(
+error.message,
+"error"
+);
 
 btn.disabled=false;
 btn.innerText="I HAVE PAID";
@@ -215,16 +253,20 @@ return;
 
 
 /* SUCCESS MESSAGE */
-alert(
-"Payment submitted successfully!\n\n" +
-"Your Queue Number: #" + currentOrder.order_number +
-"\n\nRedirecting to track your order..."
+showMessage(
+"Payment submitted successfully!",
+"success"
 );
 
 
-/* REDIRECT TO TRACK PAGE */
+/* REDIRECT AFTER DELAY */
+setTimeout(()=>{
+
 window.location.href =
-"track.html?order_number=" + currentOrder.order_number;
+"track.html?order_number=" +
+currentOrder.order_number;
+
+},2000);
 
 }
 

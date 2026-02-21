@@ -101,6 +101,21 @@ margin-top:10px;
 font-weight:bold;
 }
 
+/* MESSAGE BOX */
+#msgBox{
+text-align:center;
+margin-top:10px;
+font-weight:bold;
+}
+
+.success{
+color:green;
+}
+
+.error{
+color:red;
+}
+
 </style>
 
 </head>
@@ -131,6 +146,8 @@ Cart <span class="cart-count" id="cartCount">0</span>
 <div class="student-info" id="studentInfo">
 Loading user...
 </div>
+
+<div id="msgBox"></div>
 
 <div class="container">
 
@@ -198,34 +215,47 @@ Loading user...
 
 </div>
 
-<!-- REQUIRED SHARED SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 
-/* USE SHARED CLIENT */
 const client = window.supabaseClient;
 
 let currentUser = null;
+
+const msgBox =
+document.getElementById("msgBox");
+
+
+/* MESSAGE FUNCTION */
+function showMessage(message,type){
+
+msgBox.innerHTML=message;
+msgBox.className=type;
+
+setTimeout(()=>{
+msgBox.innerHTML="";
+},3000);
+
+}
+
 
 /* AUTH HANDLING */
 client.auth.onAuthStateChange(async (event, session) => {
 
 if(!session){
 
-window.location.href = "index.html";
+window.location.href="index.html";
 return;
 
 }
 
 currentUser = session.user;
 
-/* SHOW USER EMAIL */
 document.getElementById("studentInfo").innerHTML =
 "Logged in as: " + currentUser.email;
 
-/* LOAD CART COUNT */
 loadCartCount();
 
 });
@@ -244,7 +274,7 @@ await client
 
 if(error){
 
-console.log(error);
+showMessage(error.message,"error");
 return;
 
 }
@@ -260,7 +290,7 @@ async function addCart(name,price){
 
 if(!currentUser){
 
-alert("Please login first");
+showMessage("Please login first","error");
 return;
 
 }
@@ -278,14 +308,14 @@ price: price
 
 if(error){
 
-alert(error.message);
+showMessage(error.message,"error");
 return;
 
 }
 
 loadCartCount();
 
-alert(name + " added to cart");
+showMessage(name + " added to cart","success");
 
 }
 
