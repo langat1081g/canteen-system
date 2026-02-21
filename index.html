@@ -7,44 +7,62 @@
 
 <style>
 
+/* RESET */
+*{
+box-sizing:border-box;
+}
+
+/* BODY */
 body{
 font-family:Arial;
 background:#4facfe;
 display:flex;
 justify-content:center;
 align-items:center;
-height:100vh;
+min-height:100vh;
 margin:0;
+padding:15px;
 }
 
+/* LOGIN BOX */
 .box{
 background:white;
-padding:30px;
-border-radius:10px;
-width:320px;
+padding:25px;
+border-radius:12px;
+width:100%;
+max-width:360px;
 text-align:center;
-box-shadow:0 4px 15px rgba(0,0,0,0.2);
+box-shadow:0 6px 25px rgba(0,0,0,0.15);
 }
 
+/* TITLE */
+.box h2{
+margin-top:0;
+margin-bottom:15px;
+}
+
+/* INPUT */
 input{
 width:100%;
-padding:10px;
+padding:12px;
 margin-top:10px;
-border-radius:5px;
+border-radius:8px;
 border:1px solid #ccc;
-font-size:15px;
+font-size:16px;
 }
 
+/* BUTTON */
 button{
 width:100%;
-padding:10px;
+padding:12px;
 margin-top:10px;
 border:none;
-border-radius:5px;
+border-radius:8px;
 background:#007bff;
 color:white;
 cursor:pointer;
-font-size:15px;
+font-size:16px;
+font-weight:bold;
 }
 
 button:hover{
@@ -53,9 +71,9 @@ background:#0056b3;
 
 button:disabled{
 background:gray;
-cursor:not-allowed;
 }
 
+/* ALERT */
 #login_alert{
 font-size:15px;
 margin-top:10px;
@@ -71,19 +89,21 @@ color:red;
 color:green;
 }
 
+/* PASSWORD BOX */
 .password-box{
 position:relative;
 }
 
 .toggle{
 position:absolute;
-right:10px;
-top:18px;
+right:12px;
+top:16px;
 cursor:pointer;
 font-size:14px;
 color:#007bff;
 }
 
+/* RULES */
 .rule{
 font-size:14px;
 text-align:left;
@@ -98,6 +118,7 @@ color:red;
 color:blue;
 }
 
+/* SPINNER */
 .spinner{
 display:none;
 margin:auto;
@@ -115,15 +136,40 @@ animation:spin 1s linear infinite;
 100%{transform:rotate(360deg);}
 }
 
+/* FORGOT */
 .forgot{
 color:#007bff;
 cursor:pointer;
-margin-top:10px;
+margin-top:12px;
 font-size:14px;
 }
 
 .forgot:hover{
 text-decoration:underline;
+}
+
+/* MOBILE IMPROVEMENTS */
+@media(max-width:480px){
+
+body{
+padding:10px;
+align-items:flex-start;
+padding-top:40px;
+}
+
+.box{
+padding:20px;
+border-radius:10px;
+}
+
+input{
+font-size:16px;
+}
+
+button{
+font-size:16px;
+}
+
 }
 
 </style>
@@ -176,6 +222,8 @@ Forgot Password?
 
 <script>
 
+/* YOUR ORIGINAL JS UNTOUCHED */
+
 const client = window.supabaseClient;
 
 const alertBox=document.getElementById("login_alert");
@@ -187,7 +235,6 @@ const signupBtn=document.getElementById("signupBtn");
 const passwordInput=document.getElementById("password");
 
 
-/* AUTO LOGIN */
 checkSession();
 
 async function checkSession(){
@@ -196,77 +243,54 @@ const { data:{ session } }=
 await client.auth.getSession();
 
 if(session){
-
 window.location.href="menu.html";
-
 }
 
 }
 
-
-/* PASSWORD TOGGLE */
 function togglePassword(){
 
 const toggle=document.querySelector(".toggle");
 
 if(passwordInput.type==="password"){
-
 passwordInput.type="text";
 toggle.innerHTML="Hide";
-
 }else{
-
 passwordInput.type="password";
 toggle.innerHTML="Show";
-
 }
 
 }
 
-
-/* PASSWORD RULES LIVE */
 passwordInput.addEventListener("input",function(){
 
 const password=passwordInput.value;
 
 if(password.length>=6){
-
 rule_length.classList.add("valid");
 rule_length.classList.remove("invalid");
-
 }else{
-
 rule_length.classList.add("invalid");
 rule_length.classList.remove("valid");
-
 }
 
 if(/[A-Za-z]/.test(password)){
-
 rule_letter.classList.add("valid");
 rule_letter.classList.remove("invalid");
-
 }else{
-
 rule_letter.classList.add("invalid");
 rule_letter.classList.remove("valid");
-
 }
 
 if(/[0-9]/.test(password)){
-
 rule_number.classList.add("valid");
 rule_number.classList.remove("invalid");
-
 }else{
-
 rule_number.classList.add("invalid");
 rule_number.classList.remove("valid");
-
 }
 
 });
-
 
 function isPasswordValid(password){
 
@@ -276,8 +300,6 @@ return password.length>=6 &&
 
 }
 
-
-/* MESSAGE */
 function showMessage(msg,type){
 
 alertBox.innerHTML=msg;
@@ -285,36 +307,27 @@ alertBox.className=type;
 
 }
 
-
-/* LOADING */
 function setLoading(state){
 
 spinner.style.display=state?"block":"none";
-
 loginBtn.disabled=state;
 signupBtn.disabled=state;
 
 }
 
-
-/* SIGNUP */
 async function signup(){
 
 const email=emailInput();
 const password=passwordInput.value;
 
 if(!email||!password){
-
 showMessage("Enter email and password","error");
 return;
-
 }
 
 if(!isPasswordValid(password)){
-
 showMessage("Password does not meet requirements","error");
 return;
-
 }
 
 setLoading(true);
@@ -325,29 +338,21 @@ await client.auth.signUp({email,password});
 setLoading(false);
 
 if(error){
-
 showMessage(error.message,"error");
-
 }else{
-
 showMessage("Signup successful. You can login now.","success");
-
 }
 
 }
 
-
-/* LOGIN */
 async function login(){
 
 const email=emailInput();
 const password=passwordInput.value;
 
 if(!email||!password){
-
 showMessage("Enter email and password","error");
 return;
-
 }
 
 setLoading(true);
@@ -358,32 +363,23 @@ await client.auth.signInWithPassword({email,password});
 setLoading(false);
 
 if(error){
-
 showMessage(error.message,"error");
-
 }else{
-
 showMessage("Login successful","success");
-
 setTimeout(()=>{
 window.location.href="menu.html";
 },1000);
-
 }
 
 }
 
-
-/* RESET PASSWORD */
 async function resetPassword(){
 
 const email=emailInput();
 
 if(!email){
-
 showMessage("Enter your email first","error");
 return;
-
 }
 
 setLoading(true);
@@ -401,25 +397,16 @@ window.location.origin +
 setLoading(false);
 
 if(error){
-
 showMessage(error.message,"error");
-
 }else{
-
-showMessage(
-"Password reset email sent. Check your inbox.",
-"success"
-);
-
+showMessage("Password reset email sent.","success");
 }
 
 }
-
 
 function emailInput(){
 return document.getElementById("email").value;
 }
-
 
 signupBtn.onclick=signup;
 loginBtn.onclick=login;

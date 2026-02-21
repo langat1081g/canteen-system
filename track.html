@@ -6,79 +6,199 @@
 
 <style>
 
+/* PAGE */
 body{
-font-family:Arial;
-background:#eef2f7;
+font-family:'Segoe UI',Arial,sans-serif;
+background:#f4f6f9;
+margin:0;
 }
 
+/* NAVBAR */
+.navbar{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:#1f2937;
+padding:15px;
+text-align:center;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+z-index:1000;
+}
+
+.navbar a{
+color:white;
+margin:15px;
+text-decoration:none;
+font-weight:500;
+transition:0.2s;
+}
+
+.navbar a:hover{
+color:#38bdf8;
+}
+
+/* MAIN CONTAINER */
 .container{
 background:white;
-max-width:400px;
-margin:80px auto;
-padding:20px;
-border-radius:10px;
+max-width:420px;
+margin:120px auto;
+padding:25px;
+border-radius:12px;
+box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
 
-/* MESSAGE BOX */
+/* TITLE */
+.container h2{
+margin-top:0;
+color:#111827;
+text-align:center;
+margin-bottom:20px;
+}
+
+/* INPUT */
+input{
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid #d1d5db;
+margin-bottom:10px;
+font-size:15px;
+outline:none;
+transition:0.2s;
+}
+
+input:focus{
+border-color:#3b82f6;
+box-shadow:0 0 0 2px rgba(59,130,246,0.1);
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#3b82f6;
+color:white;
+font-size:15px;
+font-weight:600;
+cursor:pointer;
+transition:0.2s;
+}
+
+button:hover{
+background:#2563eb;
+}
+
+/* MESSAGE */
 #msgBox{
 margin-top:10px;
-font-weight:bold;
+font-weight:600;
+text-align:center;
 }
 
 .error{
-color:red;
+color:#dc2626;
 }
 
 .success{
-color:green;
+color:#16a34a;
 }
 
+/* STATUS CARDS */
 .serving{
-background:#28a745;
+background:linear-gradient(135deg,#16a34a,#15803d);
 color:white;
-padding:10px;
-border-radius:6px;
-margin-top:10px;
+padding:12px;
+border-radius:8px;
+margin-top:15px;
+font-weight:600;
+box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
 .queue{
-background:#007bff;
+background:linear-gradient(135deg,#3b82f6,#2563eb);
 color:white;
-padding:10px;
-border-radius:6px;
+padding:12px;
+border-radius:8px;
 margin-top:10px;
+font-weight:600;
+box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
+/* INFO TEXT */
+.info{
+margin-top:8px;
+color:#374151;
+font-weight:500;
+}
+
+/* ITEMS */
 .item{
-background:#f1f1f1;
-padding:6px;
-margin-top:5px;
-border-radius:5px;
+background:#f9fafb;
+padding:8px;
+margin-top:6px;
+border-radius:6px;
+border-left:4px solid #3b82f6;
 }
 
+/* TOTAL */
 .total{
-margin-top:10px;
-font-weight:bold;
+margin-top:12px;
+font-weight:700;
+font-size:16px;
+color:#111827;
+border-top:1px solid #e5e7eb;
+padding-top:10px;
+}
+
+/* RESULT BOX */
+#result{
+margin-top:15px;
+}
+
+/* MOBILE */
+@media(max-width:500px){
+
+.container{
+margin:110px 15px;
+}
+
+.navbar a{
+display:inline-block;
+margin:8px;
+}
+
 }
 
 </style>
 </head>
 <body>
 
+<div class="navbar">
+<a href="menu.html">Menu</a>
+<a href="cart.html">Cart</a>
+<a href="orders.html">My Orders</a>
+<a href="track.html">Track Order</a>
+<a href="admin.html">Admin</a>
+<a href="#" onclick="logout()">Logout</a>
+</div>
+
 <div class="container">
 
-<h2>Track Order</h2>
+<h2>Track Your Order</h2>
 
 <div id="msgBox"></div>
 
 <input 
 type="number" 
 id="orderNumber"
-placeholder="Enter queue number"
+placeholder="Enter your queue number"
 >
 
 <button onclick="startTracking()">
-Track
+Track Order
 </button>
 
 <div id="result"></div>
@@ -90,36 +210,28 @@ Track
 
 <script>
 
+/* LOGIC UNTOUCHED */
+
 const supabaseClient = window.supabaseClient;
 
 let currentOrderNumber=null;
 
-const msgBox =
-document.getElementById("msgBox");
+const msgBox=document.getElementById("msgBox");
 
-
-/* MESSAGE FUNCTION */
 function showMessage(message,type){
-
 msgBox.innerHTML=message;
 msgBox.className=type;
-
 }
 
-
-/* AUTO LOAD FROM URL */
 function autoLoad(){
 
-const params =
-new URLSearchParams(window.location.search);
+const params=new URLSearchParams(window.location.search);
 
-const number =
-params.get("order_number");
+const number=params.get("order_number");
 
 if(number){
 
-currentOrderNumber =
-parseInt(number);
+currentOrderNumber=parseInt(number);
 
 orderNumber.value=number;
 
@@ -131,19 +243,13 @@ loadOrder();
 
 autoLoad();
 
-
-/* START TRACKING */
 function startTracking(){
 
-const number =
-parseInt(orderNumber.value);
+const number=parseInt(orderNumber.value);
 
 if(!number){
 
-showMessage(
-"Enter a valid queue number",
-"error"
-);
+showMessage("Enter a valid queue number","error");
 return;
 
 }
@@ -154,14 +260,10 @@ loadOrder();
 
 }
 
-
-/* LOAD ORDER */
 async function loadOrder(){
 
 if(!currentOrderNumber)return;
 
-
-/* GET ORDER */
 const { data, error } =
 await supabaseClient
 .from("orders")
@@ -171,17 +273,11 @@ await supabaseClient
 
 if(error){
 
-showMessage(
-"Order not found",
-"error"
-);
-
+showMessage("Order not found","error");
 return;
 
 }
 
-
-/* GET CURRENTLY SERVING */
 const { data: serving } =
 await supabaseClient
 .from("orders")
@@ -194,29 +290,22 @@ let currentlyServing=0;
 
 if(serving && serving.length>0){
 
-currentlyServing=
-serving[0].order_number;
+currentlyServing=serving[0].order_number;
 
 }
 
-
-let peopleAhead=
-currentOrderNumber-currentlyServing;
+let peopleAhead=currentOrderNumber-currentlyServing;
 
 if(peopleAhead<0)peopleAhead=0;
 
-
-/* PARSE ITEMS */
 let itemsHTML="";
 let total=0;
 
 if(data.items){
 
-let items=
-JSON.parse(data.items);
+let items=JSON.parse(data.items);
 
 items.forEach(item=>{
-
 total+=item.price;
 
 itemsHTML+=`
@@ -229,8 +318,6 @@ ${item.item_name} - Ksh ${item.price}
 
 }
 
-
-/* DISPLAY RESULT */
 result.innerHTML=`
 
 <div class="serving">
@@ -241,13 +328,17 @@ Currently Serving: #${currentlyServing}
 Your Queue Number: #${currentOrderNumber}
 </div>
 
-<br>
+<div class="info">
+People Ahead: ${peopleAhead}
+</div>
 
-People Ahead: ${peopleAhead}<br>
+<div class="info">
+Order Status: ${data.status}
+</div>
 
-Order Status: ${data.status}<br>
-
-Payment Status: ${data.payment_status}<br>
+<div class="info">
+Payment Status: ${data.payment_status}
+</div>
 
 <br>
 
@@ -263,8 +354,6 @@ Total Amount: Ksh ${total}
 
 }
 
-
-/* AUTO REFRESH */
 setInterval(loadOrder,3000);
 
 </script>
