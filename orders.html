@@ -7,104 +7,169 @@
 
 <style>
 
-body{
-font-family:Arial;
-background:#eef2f7;
+/* RESET */
+*{
+box-sizing:border-box;
 margin:0;
+padding:0;
 }
 
+body{
+font-family:Arial, sans-serif;
+background:#eef2f7;
+}
+
+/* NAVBAR */
 .navbar{
 position:fixed;
 top:0;
 left:0;
 width:100%;
-background:#333;
-padding:15px;
-text-align:center;
+background:#1f2937;
+padding:12px 10px;
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
+z-index:1000;
 }
 
 .navbar a{
 color:white;
-margin:15px;
 text-decoration:none;
 font-weight:bold;
+padding:8px 12px;
+border-radius:6px;
+font-size:14px;
+transition:0.2s;
 }
 
+.navbar a:hover{
+background:#374151;
+}
+
+/* MAIN */
 .main{
-margin-top:80px;
-padding:20px;
-max-width:500px;
+margin-top:70px;
+padding:15px;
+max-width:700px;
 margin-left:auto;
 margin-right:auto;
 }
 
+/* MESSAGE */
+#msgBox{
+text-align:center;
+margin-bottom:10px;
+font-weight:bold;
+min-height:20px;
+}
+
+.error{
+color:#dc2626;
+}
+
+.success{
+color:#16a34a;
+}
+
+/* CURRENTLY SERVING */
 .serving{
-background:#28a745;
+background:linear-gradient(135deg,#16a34a,#22c55e);
 color:white;
-padding:12px;
-border-radius:8px;
-margin-bottom:20px;
+padding:14px;
+border-radius:12px;
+margin-bottom:15px;
 font-size:18px;
 font-weight:bold;
 text-align:center;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
 }
 
+/* ORDER CARD */
 .order{
 background:white;
-padding:15px;
+padding:16px;
 margin-bottom:15px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
+border-radius:14px;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+transition:0.2s;
 }
 
+.order:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* QUEUE NUMBER */
 .queue{
-background:#007bff;
+background:#2563eb;
 color:white;
 padding:8px;
-border-radius:5px;
+border-radius:8px;
 font-weight:bold;
 margin-bottom:10px;
+text-align:center;
 }
 
-.item{
-background:#f1f1f1;
-padding:6px;
-margin-top:5px;
-border-radius:5px;
-}
-
-.total{
-font-weight:bold;
-margin-top:10px;
-}
-
-.waiting{color:orange;}
-.preparing{color:blue;}
-.ready{color:green;}
-.completed{color:black;}
-
-.payment-pending{color:red;}
-.payment-approval{color:orange;}
-.payment-paid{color:green;}
-
+/* INFO */
 .info{
 margin-top:5px;
 font-weight:bold;
 }
 
-/* MESSAGE BOX */
-#msgBox{
-text-align:center;
-margin-bottom:15px;
+/* ITEMS */
+.item{
+background:#f3f4f6;
+padding:8px;
+margin-top:6px;
+border-radius:6px;
+}
+
+/* TOTAL */
+.total{
 font-weight:bold;
+margin-top:10px;
+font-size:16px;
+color:#111827;
 }
 
-.error{
-color:red;
+/* STATUS COLORS */
+.waiting{color:#ea580c;}
+.preparing{color:#2563eb;}
+.ready{color:#16a34a;}
+.completed{color:#374151;}
+
+.payment-pending{color:#dc2626;}
+.payment-approval{color:#ea580c;}
+.payment-paid{color:#16a34a;}
+
+/* MOBILE FIX */
+@media(max-width:480px){
+
+.navbar{
+gap:5px;
+padding:10px 5px;
 }
 
-.success{
-color:green;
+.navbar a{
+font-size:13px;
+padding:6px 8px;
+}
+
+.main{
+padding:12px;
+}
+
+.serving{
+font-size:16px;
+padding:12px;
+}
+
+.order{
+padding:14px;
+}
+
 }
 
 </style>
@@ -146,7 +211,6 @@ const msgBox =
 document.getElementById("msgBox");
 
 
-/* MESSAGE FUNCTION */
 function showMessage(message,type){
 
 msgBox.innerHTML=message;
@@ -154,8 +218,6 @@ msgBox.className=type;
 
 }
 
-
-/* INIT */
 init();
 
 async function init(){
@@ -176,13 +238,10 @@ loadOrders();
 
 }
 
-
-/* LOAD ORDERS */
 async function loadOrders(){
 
 try{
 
-/* GET CURRENTLY SERVING */
 const { data: serving, error: servingError } =
 await supabaseClient
 .from("orders")
@@ -208,7 +267,6 @@ document.getElementById("currentlyServingBox").innerHTML =
 "Currently Serving: #" + currentlyServing;
 
 
-/* GET USER ORDERS */
 const { data, error } =
 await supabaseClient
 .from("orders")
@@ -242,16 +300,12 @@ if(peopleAhead<0) peopleAhead=0;
 let waitTime =
 peopleAhead * 2;
 
-
-/* STATUS CLASS */
 let statusClass="waiting";
 
 if(order.status==="Preparing") statusClass="preparing";
 if(order.status==="Ready") statusClass="ready";
 if(order.status==="Completed") statusClass="completed";
 
-
-/* PAYMENT CLASS */
 let paymentClass="payment-pending";
 
 if(order.payment_status==="Pending Approval")
@@ -260,8 +314,6 @@ paymentClass="payment-approval";
 if(order.payment_status==="Paid")
 paymentClass="payment-paid";
 
-
-/* ITEMS */
 let itemsHTML="";
 let total=0;
 
@@ -282,7 +334,6 @@ ${item.item_name} - Ksh ${item.price}
 });
 
 }
-
 
 html+=`
 
@@ -335,12 +386,8 @@ showMessage("Unexpected error occurred","error");
 
 }
 
-
-/* AUTO REFRESH */
 setInterval(loadOrders,3000);
 
-
-/* LOGOUT */
 async function logout(){
 
 await supabaseClient.auth.signOut();

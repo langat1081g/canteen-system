@@ -1,77 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
 
 <style>
 
+/* RESET */
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
 body{
-font-family:Arial;
+font-family:'Segoe UI',Arial,sans-serif;
 background:#eef2f7;
-padding:20px;
 }
 
-.order{
-background:white;
-padding:15px;
-margin-bottom:15px;
-border-radius:10px;
-box-shadow:0 4px 8px rgba(0,0,0,0.1);
-}
-
-button{
-margin:5px;
-padding:8px;
-border:none;
-color:white;
-cursor:pointer;
-border-radius:5px;
-}
-
-.pay{background:green;}
-.prep{background:orange;}
-.ready{background:blue;}
-.complete{background:black;}
-
-.logout{
-background:red;
-float:right;
-}
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.serving{
-background:#007bff;
-color:white;
-padding:10px;
-border-radius:8px;
-margin-bottom:20px;
-font-size:18px;
-font-weight:bold;
-}
+/* NAVBAR */
 .navbar{
 position:fixed;
 top:0;
 left:0;
 width:100%;
-background:#333;
-padding:15px;
-text-align:center;
+background:#1f2937;
+padding:12px 8px;
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:8px;
+z-index:1000;
 }
+
 .navbar a{
 color:white;
-margin:15px;
 text-decoration:none;
-font-weight:bold;
+padding:8px 12px;
+border-radius:6px;
+font-size:14px;
+transition:0.2s;
+}
+
+.navbar a:hover{
+background:#374151;
+}
+
+/* MAIN CONTAINER */
+.main{
+max-width:700px;
+margin:90px auto 20px auto;
+padding:15px;
+}
+
+/* HEADER */
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:15px;
+flex-wrap:wrap;
+gap:10px;
+}
+
+.header h2{
+color:#111827;
+}
+
+/* LOGOUT BUTTON */
+.logout{
+background:#dc2626;
+color:white;
+border:none;
+padding:8px 14px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* SERVING BOX */
+.serving{
+background:linear-gradient(135deg,#3b82f6,#2563eb);
+color:white;
+padding:12px;
+border-radius:10px;
+margin-bottom:15px;
+font-weight:600;
+text-align:center;
+}
+
+/* ORDER CARD */
+.order{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* ORDER TITLE */
+.order b{
+font-size:16px;
+color:#111827;
+}
+
+/* BUTTON CONTAINER */
+.actions{
+margin-top:10px;
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+}
+
+/* BUTTONS */
+button{
+flex:1;
+min-width:120px;
+padding:10px;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:8px;
+font-weight:600;
+font-size:14px;
+}
+
+.pay{background:#16a34a;}
+.prep{background:#f59e0b;}
+.ready{background:#2563eb;}
+.complete{background:#111827;}
+
+button:hover{
+opacity:0.9;
+}
+
+/* MOBILE FIX */
+@media(max-width:480px){
+
+.main{
+padding:10px;
+}
+
+.header{
+flex-direction:column;
+align-items:flex-start;
+}
+
+button{
+font-size:13px;
+padding:9px;
+}
+
 }
 
 </style>
 
 </head>
+<body>
+
 <div class="navbar">
 <a href="menu.html">Menu</a>
 <a href="cart.html">Cart</a>
@@ -80,7 +166,8 @@ font-weight:bold;
 <a href="admin.html">Admin</a>
 <a href="#" onclick="logout()">Logout</a>
 </div>
-<body>
+
+<div class="main">
 
 <div class="header">
 <h2>Admin Dashboard</h2>
@@ -93,8 +180,9 @@ Loading currently serving...
 
 <div id="orders">Loading orders...</div>
 
+</div>
 
-<!-- REQUIRED SCRIPTS -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
@@ -208,7 +296,9 @@ html += `
 
 User ID: ${order.user_id}<br>
 Payment: <b>${payment}</b><br>
-Status: <b>${status}</b><br><br>
+Status: <b>${status}</b>
+
+<div class="actions">
 
 <button class="pay"
 onclick="approvePayment('${order.id}')">
@@ -229,6 +319,8 @@ Ready
 onclick="updateStatus('${order.id}','Completed')">
 Completed
 </button>
+
+</div>
 
 </div>
 

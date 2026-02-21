@@ -7,105 +7,188 @@
 
 <style>
 
-body{
-font-family: Arial;
+/* RESET */
+*{
+box-sizing:border-box;
 margin:0;
+padding:0;
+}
+
+body{
+font-family:Arial;
 background:#eef2f7;
 }
 
+/* NAVBAR */
 .navbar{
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-background: #333;
-padding: 15px;
-z-index: 1000;
-text-align:center;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:#1f2937;
+padding:12px;
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
+z-index:1000;
 }
 
 .navbar a{
 color:white;
-margin:15px;
 text-decoration:none;
+padding:8px 12px;
+border-radius:6px;
 font-weight:bold;
 }
 
 .navbar a:hover{
-color:#00ffcc;
+background:#374151;
 }
 
 .cart-count{
 background:red;
-color:white;
 border-radius:50%;
-padding:3px 8px;
+padding:2px 7px;
 font-size:12px;
-margin-left:5px;
+margin-left:4px;
 }
 
+/* MAIN */
 .main{
-margin-top:80px;
+margin-top:70px;
 }
 
+/* HEADER */
 header{
+background:linear-gradient(135deg,#007bff,#00c6ff);
+color:white;
+padding:18px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+}
+
+/* USER */
+.student-info{
+text-align:center;
+margin:10px;
+font-weight:bold;
+}
+
+/* SEARCH */
+.search-box{
+max-width:500px;
+margin:10px auto;
+padding:0 15px;
+}
+
+.search-box input{
+width:100%;
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:15px;
+}
+
+/* TABS */
+.tabs{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:15px;
+flex-wrap:wrap;
+}
+
+.tab{
+padding:10px 16px;
+background:white;
+border-radius:20px;
+cursor:pointer;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+font-weight:bold;
+}
+
+.tab.active{
 background:#007bff;
 color:white;
-padding:15px;
-text-align:center;
-font-size:24px;
 }
 
+/* GRID */
 .container{
-padding:20px;
+max-width:1300px;
+margin:auto;
+padding:15px;
 }
 
 .food-grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:20px;
+grid-template-columns:repeat(2,1fr);
+gap:15px;
 }
 
+@media(min-width:600px){
+.food-grid{
+grid-template-columns:repeat(3,1fr);
+}
+}
+
+@media(min-width:900px){
+.food-grid{
+grid-template-columns:repeat(4,1fr);
+}
+}
+
+@media(min-width:1200px){
+.food-grid{
+grid-template-columns:repeat(5,1fr);
+}
+}
+
+/* ITEM */
 .food-item{
 background:white;
-border-radius:10px;
-box-shadow:0 4px 8px rgba(0,0,0,0.1);
-padding:15px;
+padding:12px;
+border-radius:12px;
 text-align:center;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
 }
 
 .food-item img{
 width:100%;
-height:150px;
+height:140px;
 object-fit:cover;
-border-radius:10px;
+border-radius:8px;
+}
+
+.food-item h3{
+margin-top:8px;
+}
+
+.food-item p{
+font-weight:bold;
 }
 
 button{
-background:#28a745;
+background:#16a34a;
 color:white;
 border:none;
 padding:10px;
-margin-top:10px;
+margin-top:8px;
+width:100%;
+border-radius:8px;
 cursor:pointer;
-border-radius:5px;
 }
 
 button:hover{
-background:#218838;
+background:#15803d;
 }
 
-.student-info{
-text-align:center;
-margin-top:10px;
-font-weight:bold;
-}
-
-/* MESSAGE BOX */
+/* MESSAGE */
 #msgBox{
 text-align:center;
-margin-top:10px;
 font-weight:bold;
+margin-top:10px;
 }
 
 .success{
@@ -114,6 +197,13 @@ color:green;
 
 .error{
 color:red;
+}
+
+.hidden{
+display:none;
+}
+.student-info {
+    display: none;
 }
 
 </style>
@@ -126,10 +216,10 @@ color:red;
 <a href="menu.html">Menu</a>
 
 <a href="cart.html">
-Cart <span class="cart-count" id="cartCount">0</span>
+Cart <span id="cartCount" class="cart-count">0</span>
 </a>
 
-<a href="orders.html">My Order</a>
+<a href="orders.html">My Orders</a>
 
 <a href="track.html">Track Order</a>
 
@@ -149,64 +239,125 @@ Loading user...
 
 <div id="msgBox"></div>
 
+<!-- SEARCH -->
+<div class="search-box">
+<input
+type="text"
+placeholder="Search food..."
+oninput="searchFood(this.value)"
+>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+
+<div class="tab active" onclick="showCategory('all',this)">
+All
+</div>
+
+<div class="tab" onclick="showCategory('breakfast',this)">
+Breakfast
+</div>
+
+<div class="tab" onclick="showCategory('lunch',this)">
+Lunch
+</div>
+
+<div class="tab" onclick="showCategory('drinks',this)">
+Drinks
+</div>
+
+</div>
+
 <div class="container">
 
-<h2>Breakfast</h2>
+<div class="food-grid" id="foodGrid">
 
-<div class="food-grid">
+<!-- BREAKFAST -->
+<div class="food-item breakfast">
 
-<div class="food-item">
 <img src="https://images.unsplash.com/photo-1587731556938-38755b4803a6">
+
 <h3>Tea</h3>
+
 <p>Ksh 20</p>
-<button onclick="addCart('Tea',20)">Add to Cart</button>
+
+<button onclick="addCart('Tea',20)">
+Add to Cart
+</button>
+
 </div>
 
-<div class="food-item">
+<div class="food-item breakfast">
+
 <img src="https://images.unsplash.com/photo-1604908176997-4311f3c51b63">
+
 <h3>Mandazi</h3>
+
 <p>Ksh 15</p>
-<button onclick="addCart('Mandazi',15)">Add to Cart</button>
-</div>
+
+<button onclick="addCart('Mandazi',15)">
+Add to Cart
+</button>
 
 </div>
 
-<h2>Lunch</h2>
+<!-- LUNCH -->
+<div class="food-item lunch">
 
-<div class="food-grid">
-
-<div class="food-item">
 <img src="https://images.unsplash.com/photo-1604908554027-3f5e3b1a4a55">
+
 <h3>Rice & Beans</h3>
+
 <p>Ksh 100</p>
-<button onclick="addCart('Rice & Beans',100)">Add to Cart</button>
+
+<button onclick="addCart('Rice & Beans',100)">
+Add to Cart
+</button>
+
 </div>
 
-<div class="food-item">
+<div class="food-item lunch">
+
 <img src="https://images.unsplash.com/photo-1604908177522-040d5f3c2e67">
+
 <h3>Ugali & Chicken</h3>
+
 <p>Ksh 150</p>
-<button onclick="addCart('Ugali & Chicken',150)">Add to Cart</button>
-</div>
+
+<button onclick="addCart('Ugali & Chicken',150)">
+Add to Cart
+</button>
 
 </div>
 
-<h2>Drinks</h2>
+<!-- DRINKS -->
+<div class="food-item drinks">
 
-<div class="food-grid">
-
-<div class="food-item">
 <img src="https://images.unsplash.com/photo-1581006852262-e4307cf6283a">
+
 <h3>Soda</h3>
+
 <p>Ksh 50</p>
-<button onclick="addCart('Soda',50)">Add to Cart</button>
+
+<button onclick="addCart('Soda',50)">
+Add to Cart
+</button>
+
 </div>
 
-<div class="food-item">
+<div class="food-item drinks">
+
 <img src="https://images.unsplash.com/photo-1564419320408-38e24e038739">
+
 <h3>Water</h3>
+
 <p>Ksh 30</p>
-<button onclick="addCart('Water',30)">Add to Cart</button>
+
+<button onclick="addCart('Water',30)">
+Add to Cart
+</button>
+
 </div>
 
 </div>
@@ -216,22 +367,21 @@ Loading user...
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="supabase.js"></script>
 
 <script>
 
-const client = window.supabaseClient;
+const client=window.supabaseClient;
 
-let currentUser = null;
+let currentUser=null;
 
-const msgBox =
-document.getElementById("msgBox");
+const msgBox=document.getElementById("msgBox");
 
 
-/* MESSAGE FUNCTION */
-function showMessage(message,type){
+function showMessage(msg,type){
 
-msgBox.innerHTML=message;
+msgBox.innerHTML=msg;
 msgBox.className=type;
 
 setTimeout(()=>{
@@ -241,8 +391,8 @@ msgBox.innerHTML="";
 }
 
 
-/* AUTH HANDLING */
-client.auth.onAuthStateChange(async (event, session) => {
+/* AUTH */
+client.auth.onAuthStateChange(async(event,session)=>{
 
 if(!session){
 
@@ -251,59 +401,36 @@ return;
 
 }
 
-currentUser = session.user;
+currentUser=session.user;
 
-document.getElementById("studentInfo").innerHTML =
-"Logged in as: " + currentUser.email;
+studentInfo.innerHTML="Logged in as: "+currentUser.email;
 
 loadCartCount();
 
 });
 
 
-/* LOAD CART COUNT */
 async function loadCartCount(){
 
-if(!currentUser) return;
-
-const { data, error } =
-await client
+const {data}=await client
 .from("cart")
 .select("*")
-.eq("user_id", currentUser.id);
+.eq("user_id",currentUser.id);
 
-if(error){
-
-showMessage(error.message,"error");
-return;
-
-}
-
-document.getElementById("cartCount").innerText =
-data.length;
+cartCount.innerText=data.length;
 
 }
 
 
-/* ADD TO CART */
+/* ADD CART */
 async function addCart(name,price){
 
-if(!currentUser){
-
-showMessage("Please login first","error");
-return;
-
-}
-
-const { error } =
-await client
+const {error}=await client
 .from("cart")
 .insert([{
-
-user_id: currentUser.id,
-item_name: name,
-price: price
-
+user_id:currentUser.id,
+item_name:name,
+price:price
 }]);
 
 if(error){
@@ -313,9 +440,55 @@ return;
 
 }
 
+showMessage(name+" added","success");
+
 loadCartCount();
 
-showMessage(name + " added to cart","success");
+}
+
+
+/* SEARCH */
+function searchFood(text){
+
+text=text.toLowerCase();
+
+document.querySelectorAll(".food-item")
+.forEach(item=>{
+
+let name=item.innerText.toLowerCase();
+
+item.style.display=
+name.includes(text)?"block":"none";
+
+});
+
+}
+
+
+/* CATEGORY FILTER */
+function showCategory(category,tab){
+
+document.querySelectorAll(".tab")
+.forEach(t=>t.classList.remove("active"));
+
+tab.classList.add("active");
+
+document.querySelectorAll(".food-item")
+.forEach(item=>{
+
+if(category==="all"){
+
+item.style.display="block";
+
+}else{
+
+item.style.display=
+item.classList.contains(category)
+?"block":"none";
+
+}
+
+});
 
 }
 

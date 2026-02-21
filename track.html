@@ -2,15 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Order</title>
 
 <style>
 
-/* PAGE */
+/* RESET */
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
 body{
 font-family:'Segoe UI',Arial,sans-serif;
 background:#f4f6f9;
-margin:0;
 }
 
 /* NAVBAR */
@@ -20,40 +26,44 @@ top:0;
 left:0;
 width:100%;
 background:#1f2937;
-padding:15px;
-text-align:center;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
+padding:12px 10px;
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
 z-index:1000;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
 
 .navbar a{
 color:white;
-margin:15px;
 text-decoration:none;
 font-weight:500;
+padding:8px 12px;
+border-radius:6px;
+font-size:14px;
 transition:0.2s;
 }
 
 .navbar a:hover{
-color:#38bdf8;
+background:#374151;
 }
 
 /* MAIN CONTAINER */
 .container{
 background:white;
 max-width:420px;
-margin:120px auto;
-padding:25px;
+margin:100px auto 20px auto;
+padding:20px;
 border-radius:12px;
 box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
 
 /* TITLE */
 .container h2{
-margin-top:0;
+margin-bottom:20px;
 color:#111827;
 text-align:center;
-margin-bottom:20px;
 }
 
 /* INPUT */
@@ -63,9 +73,8 @@ padding:12px;
 border-radius:8px;
 border:1px solid #d1d5db;
 margin-bottom:10px;
-font-size:15px;
+font-size:16px;
 outline:none;
-transition:0.2s;
 }
 
 input:focus{
@@ -81,7 +90,7 @@ border:none;
 border-radius:8px;
 background:#3b82f6;
 color:white;
-font-size:15px;
+font-size:16px;
 font-weight:600;
 cursor:pointer;
 transition:0.2s;
@@ -96,6 +105,7 @@ background:#2563eb;
 margin-top:10px;
 font-weight:600;
 text-align:center;
+min-height:20px;
 }
 
 .error{
@@ -106,7 +116,7 @@ color:#dc2626;
 color:#16a34a;
 }
 
-/* STATUS CARDS */
+/* STATUS BOXES */
 .serving{
 background:linear-gradient(135deg,#16a34a,#15803d);
 color:white;
@@ -114,7 +124,6 @@ padding:12px;
 border-radius:8px;
 margin-top:15px;
 font-weight:600;
-box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
 .queue{
@@ -124,17 +133,14 @@ padding:12px;
 border-radius:8px;
 margin-top:10px;
 font-weight:600;
-box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
-/* INFO TEXT */
 .info{
 margin-top:8px;
 color:#374151;
 font-weight:500;
 }
 
-/* ITEMS */
 .item{
 background:#f9fafb;
 padding:8px;
@@ -143,7 +149,6 @@ border-radius:6px;
 border-left:4px solid #3b82f6;
 }
 
-/* TOTAL */
 .total{
 margin-top:12px;
 font-weight:700;
@@ -153,21 +158,30 @@ border-top:1px solid #e5e7eb;
 padding-top:10px;
 }
 
-/* RESULT BOX */
 #result{
 margin-top:15px;
 }
 
-/* MOBILE */
-@media(max-width:500px){
+/* MOBILE FIX */
+@media(max-width:480px){
 
 .container{
-margin:110px 15px;
+margin:90px 12px 20px 12px;
+padding:18px;
+}
+
+.navbar{
+gap:5px;
+padding:10px 5px;
 }
 
 .navbar a{
-display:inline-block;
-margin:8px;
+font-size:13px;
+padding:6px 8px;
+}
+
+button{
+font-size:15px;
 }
 
 }
@@ -209,8 +223,6 @@ Track Order
 <script src="supabase.js"></script>
 
 <script>
-
-/* LOGIC UNTOUCHED */
 
 const supabaseClient = window.supabaseClient;
 
@@ -289,9 +301,7 @@ await supabaseClient
 let currentlyServing=0;
 
 if(serving && serving.length>0){
-
 currentlyServing=serving[0].order_number;
-
 }
 
 let peopleAhead=currentOrderNumber-currentlyServing;
@@ -355,6 +365,14 @@ Total Amount: Ksh ${total}
 }
 
 setInterval(loadOrder,3000);
+
+async function logout(){
+
+await supabaseClient.auth.signOut();
+
+window.location.href="index.html";
+
+}
 
 </script>
 
