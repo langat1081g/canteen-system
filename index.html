@@ -6,6 +6,7 @@
 <title>Authentication</title>
 
 <style>
+
 body{
 font-family:Arial;
 background:#4facfe;
@@ -20,28 +21,112 @@ margin:0;
 background:white;
 padding:30px;
 border-radius:10px;
-width:300px;
+width:320px;
 text-align:center;
+box-shadow:0 4px 15px rgba(0,0,0,0.2);
 }
 
-input,button{
+input{
 width:100%;
 padding:10px;
 margin-top:10px;
+border-radius:5px;
+border:1px solid #ccc;
+font-size:15px;
 }
 
 button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:5px;
 background:#007bff;
 color:white;
-border:none;
 cursor:pointer;
+font-size:15px;
 }
 
 button:hover{
 background:#0056b3;
 }
-</style>
 
+button:disabled{
+background:gray;
+cursor:not-allowed;
+}
+
+#login_alert{
+font-size:15px;
+margin-top:10px;
+font-weight:bold;
+min-height:20px;
+}
+
+.error{
+color:red;
+}
+
+.success{
+color:green;
+}
+
+.password-box{
+position:relative;
+}
+
+.toggle{
+position:absolute;
+right:10px;
+top:18px;
+cursor:pointer;
+font-size:14px;
+color:#007bff;
+}
+
+.rule{
+font-size:14px;
+text-align:left;
+margin-top:5px;
+}
+
+.invalid{
+color:red;
+}
+
+.valid{
+color:blue;
+}
+
+.spinner{
+display:none;
+margin:auto;
+margin-top:10px;
+border:4px solid #f3f3f3;
+border-top:4px solid #007bff;
+border-radius:50%;
+width:25px;
+height:25px;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+.forgot{
+color:#007bff;
+cursor:pointer;
+margin-top:10px;
+font-size:14px;
+}
+
+.forgot:hover{
+text-decoration:underline;
+}
+
+</style>
 </head>
 <body>
 
@@ -49,74 +134,203 @@ background:#0056b3;
 
 <h2>Login / Sign Up</h2>
 
-<input type="email" id="email" placeholder="Email" required>
+<input type="email" id="email" placeholder="Email">
 
-<input type="password" id="password" placeholder="Password" required>
+<div class="password-box">
+<input type="password" id="password" placeholder="Password">
+<span class="toggle" onclick="togglePassword()">Show</span>
+</div>
+
+<div id="password_rules">
+
+<div id="rule_length" class="rule invalid">
+• At least 6 characters
+</div>
+
+<div id="rule_letter" class="rule invalid">
+• Contains a letter
+</div>
+
+<div id="rule_number" class="rule invalid">
+• Contains a number
+</div>
+
+</div>
+
+<div id="login_alert"></div>
+
+<div class="spinner" id="spinner"></div>
 
 <button id="signupBtn">Sign Up</button>
 
 <button id="loginBtn">Login</button>
 
+<div class="forgot" onclick="resetPassword()">
+Forgot Password?
 </div>
 
-<!-- REQUIRED SHARED SCRIPTS -->
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
 
-/* USE SHARED CLIENT */
 const client = window.supabaseClient;
 
+const alertBox=document.getElementById("login_alert");
+const spinner=document.getElementById("spinner");
 
-/* AUTO REDIRECT IF ALREADY LOGGED IN */
+const loginBtn=document.getElementById("loginBtn");
+const signupBtn=document.getElementById("signupBtn");
+
+const passwordInput=document.getElementById("password");
+
+
+/* AUTO LOGIN */
+checkSession();
+
 async function checkSession(){
 
-const { data: { session } } =
+const { data:{ session } }=
 await client.auth.getSession();
 
 if(session){
 
-window.location.href = "menu.html";
+window.location.href="menu.html";
 
 }
 
 }
 
-checkSession();
+
+/* PASSWORD TOGGLE */
+function togglePassword(){
+
+const toggle=document.querySelector(".toggle");
+
+if(passwordInput.type==="password"){
+
+passwordInput.type="text";
+toggle.innerHTML="Hide";
+
+}else{
+
+passwordInput.type="password";
+toggle.innerHTML="Show";
+
+}
+
+}
+
+
+/* PASSWORD RULES LIVE */
+passwordInput.addEventListener("input",function(){
+
+const password=passwordInput.value;
+
+if(password.length>=6){
+
+rule_length.classList.add("valid");
+rule_length.classList.remove("invalid");
+
+}else{
+
+rule_length.classList.add("invalid");
+rule_length.classList.remove("valid");
+
+}
+
+if(/[A-Za-z]/.test(password)){
+
+rule_letter.classList.add("valid");
+rule_letter.classList.remove("invalid");
+
+}else{
+
+rule_letter.classList.add("invalid");
+rule_letter.classList.remove("valid");
+
+}
+
+if(/[0-9]/.test(password)){
+
+rule_number.classList.add("valid");
+rule_number.classList.remove("invalid");
+
+}else{
+
+rule_number.classList.add("invalid");
+rule_number.classList.remove("valid");
+
+}
+
+});
+
+
+function isPasswordValid(password){
+
+return password.length>=6 &&
+/[A-Za-z]/.test(password) &&
+/[0-9]/.test(password);
+
+}
+
+
+/* MESSAGE */
+function showMessage(msg,type){
+
+alertBox.innerHTML=msg;
+alertBox.className=type;
+
+}
+
+
+/* LOADING */
+function setLoading(state){
+
+spinner.style.display=state?"block":"none";
+
+loginBtn.disabled=state;
+signupBtn.disabled=state;
+
+}
 
 
 /* SIGNUP */
 async function signup(){
 
-const email =
-document.getElementById("email").value;
+const email=emailInput();
+const password=passwordInput.value;
 
-const password =
-document.getElementById("password").value;
+if(!email||!password){
 
-if(!email || !password){
-
-alert("Enter email and password");
+showMessage("Enter email and password","error");
 return;
 
 }
 
-const { error } =
-await client.auth.signUp({
+if(!isPasswordValid(password)){
 
-email,
-password
+showMessage("Password does not meet requirements","error");
+return;
 
-});
+}
+
+setLoading(true);
+
+const { error }=
+await client.auth.signUp({email,password});
+
+setLoading(false);
 
 if(error){
 
-alert(error.message);
+showMessage(error.message,"error");
 
 }else{
 
-alert("Signup successful. You can login now.");
+showMessage("Signup successful. You can login now.","success");
 
 }
 
@@ -126,46 +340,89 @@ alert("Signup successful. You can login now.");
 /* LOGIN */
 async function login(){
 
-const email =
-document.getElementById("email").value;
+const email=emailInput();
+const password=passwordInput.value;
 
-const password =
-document.getElementById("password").value;
+if(!email||!password){
 
-if(!email || !password){
-
-alert("Enter email and password");
+showMessage("Enter email and password","error");
 return;
 
 }
 
-const { error } =
-await client.auth.signInWithPassword({
+setLoading(true);
 
-email,
-password
+const { error }=
+await client.auth.signInWithPassword({email,password});
 
-});
+setLoading(false);
 
 if(error){
 
-alert(error.message);
+showMessage(error.message,"error");
 
 }else{
 
-alert("Login successful");
+showMessage("Login successful","success");
 
-window.location.href = "menu.html";
+setTimeout(()=>{
+window.location.href="menu.html";
+},1000);
 
 }
 
 }
 
 
-/* CONNECT BUTTONS */
-document.getElementById("signupBtn").onclick = signup;
+/* RESET PASSWORD */
+async function resetPassword(){
 
-document.getElementById("loginBtn").onclick = login;
+const email=emailInput();
+
+if(!email){
+
+showMessage("Enter your email first","error");
+return;
+
+}
+
+setLoading(true);
+
+const { error }=
+await client.auth.resetPasswordForEmail(
+email,
+{
+redirectTo:
+window.location.origin +
+"/update-password.html"
+}
+);
+
+setLoading(false);
+
+if(error){
+
+showMessage(error.message,"error");
+
+}else{
+
+showMessage(
+"Password reset email sent. Check your inbox.",
+"success"
+);
+
+}
+
+}
+
+
+function emailInput(){
+return document.getElementById("email").value;
+}
+
+
+signupBtn.onclick=signup;
+loginBtn.onclick=login;
 
 </script>
 
