@@ -191,186 +191,194 @@ font-weight:bold;
 margin-top:10px;
 }
 
-.success{
-color:green;
-}
+.success{color:green;}
+.error{color:red;}
 
-.error{
-color:red;
-}
-
-.hidden{
-display:none;
-}
-.student-info {
-    display: none;
-}
+.student-info{display:none;}
 
 </style>
-
 </head>
 <body>
 
 <div class="navbar">
-
 <a href="menu.html">Menu</a>
-
 <a href="cart.html">
 Cart <span id="cartCount" class="cart-count">0</span>
 </a>
-
 <a href="orders.html">My Orders</a>
-
 <a href="track.html">Track Order</a>
-
 <a href="admin.html">Admin</a>
-
 <a href="#" onclick="logout()">Logout</a>
-
 </div>
 
 <div class="main">
 
 <header>Canteen Menu</header>
 
-<div class="student-info" id="studentInfo">
-Loading user...
-</div>
+<div class="student-info" id="studentInfo"></div>
 
 <div id="msgBox"></div>
 
-<!-- SEARCH -->
 <div class="search-box">
-<input
-type="text"
-placeholder="Search food..."
-oninput="searchFood(this.value)"
->
+<input type="text" placeholder="Search food..." oninput="searchFood(this.value)">
 </div>
 
-<!-- TABS -->
 <div class="tabs">
-
-<div class="tab active" onclick="showCategory('all',this)">
-All
-</div>
-
-<div class="tab" onclick="showCategory('breakfast',this)">
-Breakfast
-</div>
-
-<div class="tab" onclick="showCategory('lunch',this)">
-Lunch
-</div>
-
-<div class="tab" onclick="showCategory('drinks',this)">
-Drinks
-</div>
-
+<div class="tab active" onclick="showCategory('all',this)">All</div>
+<div class="tab" onclick="showCategory('breakfast',this)">Breakfast</div>
+<div class="tab" onclick="showCategory('lunch',this)">Lunch</div>
+<div class="tab" onclick="showCategory('drinks',this)">Drinks</div>
 </div>
 
 <div class="container">
-
 <div class="food-grid" id="foodGrid">
 
 <!-- BREAKFAST -->
 <div class="food-item breakfast">
-
-<img src="https://images.unsplash.com/photo-1587731556938-38755b4803a6">
-
+<img src="public/tea.png">
 <h3>Tea</h3>
-
 <p>Ksh 20</p>
-
-<button onclick="addCart('Tea',20)">
-Add to Cart
-</button>
-
+<button onclick="addCart('Tea',20)">Add to Cart</button>
 </div>
 
 <div class="food-item breakfast">
-
-<img src="https://images.unsplash.com/photo-1604908176997-4311f3c51b63">
-
+<img src="public/mandazi.png">
 <h3>Mandazi</h3>
-
 <p>Ksh 15</p>
+<button onclick="addCart('Mandazi',15)">Add to Cart</button>
+</div>
 
-<button onclick="addCart('Mandazi',15)">
-Add to Cart
-</button>
+<div class="food-item breakfast">
+<img src="public/chapati.png">
+<h3>Chapati</h3>
+<p>Ksh 30</p>
+<button onclick="addCart('Chapati',30)">Add to Cart</button>
+</div>
 
+<div class="food-item breakfast">
+<img src="public/coffee.png">
+<h3>Coffee</h3>
+<p>Ksh 40</p>
+<button onclick="addCart('Coffee',40)">Add to Cart</button>
+</div>
+
+<div class="food-item breakfast">
+<img src="public/omelette.png">
+<h3>Omelette</h3>
+<p>Ksh 50</p>
+<button onclick="addCart('Omelette',50)">Add to Cart</button>
+</div>
+
+<div class="food-item breakfast">
+<img src="public/pancake.png">
+<h3>Pancake</h3>
+<p>Ksh 60</p>
+<button onclick="addCart('Pancake',60)">Add to Cart</button>
 </div>
 
 <!-- LUNCH -->
 <div class="food-item lunch">
-
-<img src="https://images.unsplash.com/photo-1604908554027-3f5e3b1a4a55">
-
+<img src="public/ricebeans.jpeg">
 <h3>Rice & Beans</h3>
-
 <p>Ksh 100</p>
-
-<button onclick="addCart('Rice & Beans',100)">
-Add to Cart
-</button>
-
+<button onclick="addCart('Rice & Beans',100)">Add to Cart</button>
 </div>
 
 <div class="food-item lunch">
-
-<img src="https://images.unsplash.com/photo-1604908177522-040d5f3c2e67">
-
+<img src="public/ugali_chicken.png">
 <h3>Ugali & Chicken</h3>
-
 <p>Ksh 150</p>
+<button onclick="addCart('Ugali & Chicken',150)">Add to Cart</button>
+</div>
 
-<button onclick="addCart('Ugali & Chicken',150)">
-Add to Cart
-</button>
+<div class="food-item lunch">
+<img src="public/pilau.png">
+<h3>Pilau</h3>
+<p>Ksh 120</p>
+<button onclick="addCart('Pilau',120)">Add to Cart</button>
+</div>
 
+<div class="food-item lunch">
+<img src="public/chips.png">
+<h3>Chips</h3>
+<p>Ksh 100</p>
+<button onclick="addCart('Chips',100)">Add to Cart</button>
+</div>
+
+<div class="food-item lunch">
+<img src="public/beef.png">
+<h3>Ugali & Beef</h3>
+<p>Ksh 130</p>
+<button onclick="addCart('Ugali & Beef',130)">Add to Cart</button>
+</div>
+
+<div class="food-item lunch">
+<img src="public/spaghetti.png">
+<h3>Spaghetti</h3>
+<p>Ksh 110</p>
+<button onclick="addCart('Spaghetti',110)">Add to Cart</button>
+</div>
+
+<div class="food-item lunch">
+<img src="public/githeri.png">
+<h3>Githeri</h3>
+<p>Ksh 90</p>
+<button onclick="addCart('Githeri',90)">Add to Cart</button>
 </div>
 
 <!-- DRINKS -->
 <div class="food-item drinks">
-
-<img src="https://images.unsplash.com/photo-1581006852262-e4307cf6283a">
-
+<img src="public/soda.png">
 <h3>Soda</h3>
-
 <p>Ksh 50</p>
-
-<button onclick="addCart('Soda',50)">
-Add to Cart
-</button>
-
+<button onclick="addCart('Soda',50)">Add to Cart</button>
 </div>
 
 <div class="food-item drinks">
-
-<img src="https://images.unsplash.com/photo-1564419320408-38e24e038739">
-
+<img src="public/water.png">
 <h3>Water</h3>
-
 <p>Ksh 30</p>
+<button onclick="addCart('Water',30)">Add to Cart</button>
+</div>
 
-<button onclick="addCart('Water',30)">
-Add to Cart
-</button>
+<div class="food-item drinks">
+<img src="public/juice.png">
+<h3>Fresh Juice</h3>
+<p>Ksh 80</p>
+<button onclick="addCart('Fresh Juice',80)">Add to Cart</button>
+</div>
 
+<div class="food-item drinks">
+<img src="public/milk.png">
+<h3>Milk</h3>
+<p>Ksh 60</p>
+<button onclick="addCart('Milk',60)">Add to Cart</button>
+</div>
+
+<div class="food-item drinks">
+<img src="public/tea_milk.png">
+<h3>Milk Tea</h3>
+<p>Ksh 40</p>
+<button onclick="addCart('Milk Tea',40)">Add to Cart</button>
+</div>
+
+<div class="food-item drinks">
+<img src="public/smoothie.png">
+<h3>Smoothie</h3>
+<p>Ksh 120</p>
+<button onclick="addCart('Smoothie',120)">Add to Cart</button>
 </div>
 
 </div>
-
 </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="supabase.js"></script>
 
 <script>
+
+/* YOUR ORIGINAL SCRIPT UNCHANGED */
 
 const client=window.supabaseClient;
 
@@ -378,128 +386,51 @@ let currentUser=null;
 
 const msgBox=document.getElementById("msgBox");
 
-
 function showMessage(msg,type){
-
 msgBox.innerHTML=msg;
 msgBox.className=type;
-
-setTimeout(()=>{
-msgBox.innerHTML="";
-},3000);
-
+setTimeout(()=>{msgBox.innerHTML="";},3000);
 }
 
-
-/* AUTH */
 client.auth.onAuthStateChange(async(event,session)=>{
-
-if(!session){
-
-window.location.href="index.html";
-return;
-
-}
-
+if(!session){window.location.href="index.html";return;}
 currentUser=session.user;
-
 studentInfo.innerHTML="Logged in as: "+currentUser.email;
-
 loadCartCount();
-
 });
-
 
 async function loadCartCount(){
-
-const {data}=await client
-.from("cart")
-.select("*")
-.eq("user_id",currentUser.id);
-
+const {data}=await client.from("cart").select("*").eq("user_id",currentUser.id);
 cartCount.innerText=data.length;
-
 }
 
-
-/* ADD CART */
 async function addCart(name,price){
-
-const {error}=await client
-.from("cart")
-.insert([{
-user_id:currentUser.id,
-item_name:name,
-price:price
-}]);
-
-if(error){
-
-showMessage(error.message,"error");
-return;
-
-}
-
+const {error}=await client.from("cart").insert([{user_id:currentUser.id,item_name:name,price:price}]);
+if(error){showMessage(error.message,"error");return;}
 showMessage(name+" added","success");
-
 loadCartCount();
-
 }
 
-
-/* SEARCH */
 function searchFood(text){
-
 text=text.toLowerCase();
-
-document.querySelectorAll(".food-item")
-.forEach(item=>{
-
+document.querySelectorAll(".food-item").forEach(item=>{
 let name=item.innerText.toLowerCase();
-
-item.style.display=
-name.includes(text)?"block":"none";
-
+item.style.display=name.includes(text)?"block":"none";
 });
-
 }
 
-
-/* CATEGORY FILTER */
 function showCategory(category,tab){
-
-document.querySelectorAll(".tab")
-.forEach(t=>t.classList.remove("active"));
-
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
 tab.classList.add("active");
-
-document.querySelectorAll(".food-item")
-.forEach(item=>{
-
-if(category==="all"){
-
-item.style.display="block";
-
-}else{
-
-item.style.display=
-item.classList.contains(category)
-?"block":"none";
-
-}
-
+document.querySelectorAll(".food-item").forEach(item=>{
+if(category==="all"){item.style.display="block";}
+else{item.style.display=item.classList.contains(category)?"block":"none";}
 });
-
 }
 
-
-/* LOGOUT */
 async function logout(){
-
 await client.auth.signOut();
-
 window.location.href="index.html";
-
 }
 
 </script>
