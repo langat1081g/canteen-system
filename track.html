@@ -6,186 +6,36 @@
 <title>Track Order</title>
 
 <style>
-
 /* RESET */
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-}
-
-body{
-font-family:'Segoe UI',Arial,sans-serif;
-background:#f4f6f9;
-}
-
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ font-family:'Segoe UI',Arial,sans-serif; background:#f4f6f9; }
 /* NAVBAR */
-.navbar{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:#1f2937;
-padding:12px 10px;
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:10px;
-z-index:1000;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
-
-.navbar a{
-color:white;
-text-decoration:none;
-font-weight:500;
-padding:8px 12px;
-border-radius:6px;
-font-size:14px;
-transition:0.2s;
-}
-
-.navbar a:hover{
-background:#374151;
-}
-
+.navbar{ position:fixed; top:0; left:0; width:100%; background:#1f2937; padding:12px 10px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; z-index:1000; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.navbar a{ color:white; text-decoration:none; font-weight:500; padding:8px 12px; border-radius:6px; font-size:14px; transition:0.2s; }
+.navbar a:hover{ background:#374151; }
 /* MAIN CONTAINER */
-.container{
-background:white;
-max-width:420px;
-margin:100px auto 20px auto;
-padding:20px;
-border-radius:12px;
-box-shadow:0 8px 25px rgba(0,0,0,0.08);
-}
-
+.container{ background:white; max-width:420px; margin:100px auto 20px auto; padding:20px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08); }
 /* TITLE */
-.container h2{
-margin-bottom:20px;
-color:#111827;
-text-align:center;
-}
-
+.container h2{ margin-bottom:20px; color:#111827; text-align:center; }
 /* INPUT */
-input{
-width:100%;
-padding:12px;
-border-radius:8px;
-border:1px solid #d1d5db;
-margin-bottom:10px;
-font-size:16px;
-outline:none;
-}
-
-input:focus{
-border-color:#3b82f6;
-box-shadow:0 0 0 2px rgba(59,130,246,0.1);
-}
-
+input{ width:100%; padding:12px; border-radius:8px; border:1px solid #d1d5db; margin-bottom:10px; font-size:16px; outline:none; }
+input:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.1); }
 /* BUTTON */
-button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:8px;
-background:#3b82f6;
-color:white;
-font-size:16px;
-font-weight:600;
-cursor:pointer;
-transition:0.2s;
-}
-
-button:hover{
-background:#2563eb;
-}
-
+button{ width:100%; padding:12px; border:none; border-radius:8px; background:#3b82f6; color:white; font-size:16px; font-weight:600; cursor:pointer; transition:0.2s; }
+button:hover{ background:#2563eb; }
 /* MESSAGE */
-#msgBox{
-margin-top:10px;
-font-weight:600;
-text-align:center;
-min-height:20px;
-}
-
-.error{
-color:#dc2626;
-}
-
-.success{
-color:#16a34a;
-}
-
+#msgBox{ margin-top:10px; font-weight:600; text-align:center; min-height:20px; }
+.error{ color:#dc2626; }
+.success{ color:#16a34a; }
 /* STATUS BOXES */
-.serving{
-background:linear-gradient(135deg,#16a34a,#15803d);
-color:white;
-padding:12px;
-border-radius:8px;
-margin-top:15px;
-font-weight:600;
-}
-
-.queue{
-background:linear-gradient(135deg,#3b82f6,#2563eb);
-color:white;
-padding:12px;
-border-radius:8px;
-margin-top:10px;
-font-weight:600;
-}
-
-.info{
-margin-top:8px;
-color:#374151;
-font-weight:500;
-}
-
-.item{
-background:#f9fafb;
-padding:8px;
-margin-top:6px;
-border-radius:6px;
-border-left:4px solid #3b82f6;
-}
-
-.total{
-margin-top:12px;
-font-weight:700;
-font-size:16px;
-color:#111827;
-border-top:1px solid #e5e7eb;
-padding-top:10px;
-}
-
-#result{
-margin-top:15px;
-}
-
+.serving{ background:linear-gradient(135deg,#16a34a,#15803d); color:white; padding:12px; border-radius:8px; margin-top:15px; font-weight:600; }
+.queue{ background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; padding:12px; border-radius:8px; margin-top:10px; font-weight:600; }
+.info{ margin-top:8px; color:#374151; font-weight:500; }
+.item{ background:#f9fafb; padding:8px; margin-top:6px; border-radius:6px; border-left:4px solid #3b82f6; }
+.total{ margin-top:12px; font-weight:700; font-size:16px; color:#111827; border-top:1px solid #e5e7eb; padding-top:10px; }
+#result{ margin-top:15px; }
 /* MOBILE FIX */
-@media(max-width:480px){
-
-.container{
-margin:90px 12px 20px 12px;
-padding:18px;
-}
-
-.navbar{
-gap:5px;
-padding:10px 5px;
-}
-
-.navbar a{
-font-size:13px;
-padding:6px 8px;
-}
-
-button{
-font-size:15px;
-}
-
-}
-
+@media(max-width:480px){ .container{ margin:90px 12px 20px 12px; padding:18px; } .navbar{ gap:5px; padding:10px 5px; } .navbar a{ font-size:13px; padding:6px 8px; } button{ font-size:15px; } }
 </style>
 </head>
 <body>
@@ -205,15 +55,9 @@ font-size:15px;
 
 <div id="msgBox"></div>
 
-<input 
-type="number" 
-id="orderNumber"
-placeholder="Enter your queue number"
->
+<input type="number" id="orderNumber" placeholder="Enter your queue number">
 
-<button onclick="startTracking()">
-Track Order
-</button>
+<button onclick="startTracking()">Track Order</button>
 
 <div id="result"></div>
 
@@ -223,157 +67,93 @@ Track Order
 <script src="supabase.js"></script>
 
 <script>
-
 const supabaseClient = window.supabaseClient;
+let currentOrderNumber = null;
+const msgBox = document.getElementById("msgBox");
+const result = document.getElementById("result");
 
-let currentOrderNumber=null;
+function showMessage(message,type){ msgBox.innerHTML = message; msgBox.className = type; }
 
-const msgBox=document.getElementById("msgBox");
-
-function showMessage(message,type){
-msgBox.innerHTML=message;
-msgBox.className=type;
-}
-
+/* Auto-load from URL */
 function autoLoad(){
-
-const params=new URLSearchParams(window.location.search);
-
-const number=params.get("order_number");
-
-if(number){
-
-currentOrderNumber=parseInt(number);
-
-orderNumber.value=number;
-
-loadOrder();
-
+  const params = new URLSearchParams(window.location.search);
+  const number = params.get("order_number");
+  if(number){
+    currentOrderNumber = parseInt(number);
+    orderNumber.value = number;
+    loadOrder();
+  }
 }
-
-}
-
 autoLoad();
 
 function startTracking(){
-
-const number=parseInt(orderNumber.value);
-
-if(!number){
-
-showMessage("Enter a valid queue number","error");
-return;
-
-}
-
-currentOrderNumber=number;
-
-loadOrder();
-
+  const number = parseInt(orderNumber.value);
+  if(!number){ showMessage("Enter a valid queue number","error"); return; }
+  currentOrderNumber = number;
+  loadOrder();
 }
 
 async function loadOrder(){
+  if(!currentOrderNumber) return;
 
-if(!currentOrderNumber)return;
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("order_number", currentOrderNumber)
+    .single();
 
-const { data, error } =
-await supabaseClient
-.from("orders")
-.select("*")
-.eq("order_number",currentOrderNumber)
-.single();
+  if(error){ showMessage("Order not found","error"); result.innerHTML=""; return; }
 
-if(error){
+  // Check payment first
+  if(data.payment_status !== "paid"){
+    result.innerHTML = `<div class="error">⚠️ Payment Pending! Please complete your payment first.</div>`;
+    return;
+  }
 
-showMessage("Order not found","error");
-return;
+  const { data: serving } = await supabaseClient
+    .from("orders")
+    .select("order_number")
+    .neq("status","Completed")
+    .order("order_number",{ascending:true})
+    .limit(1);
 
+  let currentlyServing = 0;
+  if(serving && serving.length>0){ currentlyServing = serving[0].order_number; }
+
+  let peopleAhead = currentOrderNumber - currentlyServing;
+  if(peopleAhead<0) peopleAhead = 0;
+
+  let itemsHTML="";
+  let total=0;
+  if(data.items){
+    let items=JSON.parse(data.items);
+    items.forEach(item=>{
+      total+=item.price;
+      itemsHTML+=`<div class="item">${item.item_name} - Ksh ${item.price}</div>`;
+    });
+  }
+
+  result.innerHTML=`
+  <div class="serving">Currently Serving: #${currentlyServing}</div>
+  <div class="queue">Your Queue Number: #${currentOrderNumber}</div>
+  <div class="info">People Ahead: ${peopleAhead}</div>
+  <div class="info">Order Status: ${data.status}</div>
+  <div class="info">Payment Status: ${data.payment_status}</div>
+  <br>
+  <b>Items:</b>
+  ${itemsHTML}
+  <div class="total">Total Amount: Ksh ${total}</div>
+  `;
 }
 
-const { data: serving } =
-await supabaseClient
-.from("orders")
-.select("order_number")
-.neq("status","Completed")
-.order("order_number",{ascending:true})
-.limit(1);
-
-let currentlyServing=0;
-
-if(serving && serving.length>0){
-currentlyServing=serving[0].order_number;
-}
-
-let peopleAhead=currentOrderNumber-currentlyServing;
-
-if(peopleAhead<0)peopleAhead=0;
-
-let itemsHTML="";
-let total=0;
-
-if(data.items){
-
-let items=JSON.parse(data.items);
-
-items.forEach(item=>{
-total+=item.price;
-
-itemsHTML+=`
-<div class="item">
-${item.item_name} - Ksh ${item.price}
-</div>
-`;
-
-});
-
-}
-
-result.innerHTML=`
-
-<div class="serving">
-Currently Serving: #${currentlyServing}
-</div>
-
-<div class="queue">
-Your Queue Number: #${currentOrderNumber}
-</div>
-
-<div class="info">
-People Ahead: ${peopleAhead}
-</div>
-
-<div class="info">
-Order Status: ${data.status}
-</div>
-
-<div class="info">
-Payment Status: ${data.payment_status}
-</div>
-
-<br>
-
-<b>Items:</b>
-
-${itemsHTML}
-
-<div class="total">
-Total Amount: Ksh ${total}
-</div>
-
-`;
-
-}
-
+/* Live update every 3 seconds */
 setInterval(loadOrder,3000);
 
+/* LOGOUT */
 async function logout(){
-
-await supabaseClient.auth.signOut();
-
-window.location.href="index.html";
-
+  await supabaseClient.auth.signOut();
+  window.location.href="index.html";
 }
-
 </script>
 
 </body>

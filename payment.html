@@ -7,68 +7,67 @@
 
 <style>
 body{
-font-family:Arial;
-background:#eef2f7;
-margin:0;
+  font-family:Arial;
+  background:#eef2f7;
+  margin:0;
 }
 
 .container{
-background:white;
-max-width:400px;
-margin:80px auto;
-padding:20px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-text-align:center;
+  background:white;
+  max-width:400px;
+  margin:80px auto;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+  text-align:center;
 }
 
 button{
-width:100%;
-padding:12px;
-margin-top:20px;
-background:green;
-color:white;
-border:none;
-border-radius:5px;
-cursor:pointer;
-font-size:16px;
+  width:100%;
+  padding:12px;
+  margin-top:20px;
+  background:green;
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  font-size:16px;
 }
 
 button:disabled{
-background:gray;
+  background:gray;
 }
 
 .info{
-background:#f1f1f1;
-padding:10px;
-margin-top:15px;
-border-radius:5px;
+  background:#f1f1f1;
+  padding:10px;
+  margin-top:15px;
+  border-radius:5px;
 }
 
 .queue{
-background:#007bff;
-color:white;
-padding:12px;
-border-radius:8px;
-margin-bottom:15px;
-font-weight:bold;
-font-size:18px;
+  background:#007bff;
+  color:white;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:15px;
+  font-weight:bold;
+  font-size:18px;
 }
 
 /* MESSAGE BOX */
 #msgBox{
-margin-top:10px;
-font-weight:bold;
+  margin-top:10px;
+  font-weight:bold;
 }
 
 .success{
-color:green;
+  color:green;
 }
 
 .error{
-color:red;
+  color:red;
 }
-
 </style>
 </head>
 <body>
@@ -86,14 +85,14 @@ Loading order...
 <div id="orderInfo"></div>
 
 <div class="info">
-Pay via MPESA<br><br>
+Simulated M-PESA Payment<br><br>
 Till Number:<br>
 <b>123456</b><br><br>
 After paying click button below
 </div>
 
 <button id="payBtn">
-I HAVE PAID
+Pay Now
 </button>
 
 </div>
@@ -104,178 +103,114 @@ I HAVE PAID
 <script>
 
 const supabaseClient = window.supabaseClient;
-
 let currentOrder = null;
 let currentUser = null;
 
-const msgBox =
-document.getElementById("msgBox");
-
+const msgBox = document.getElementById("msgBox");
 
 /* MESSAGE FUNCTION */
 function showMessage(message,type){
-
-msgBox.innerHTML=message;
-msgBox.className=type;
-
+  msgBox.innerHTML=message;
+  msgBox.className=type;
 }
-
 
 /* GET ORDER ID */
 function getOrderId(){
-
-const params =
-new URLSearchParams(window.location.search);
-
-return params.get("order_id");
-
+  const params = new URLSearchParams(window.location.search);
+  return params.get("order_id");
 }
-
 
 /* INIT */
 async function init(){
+  const { data:{ session }, error } = await supabaseClient.auth.getSession();
 
-const { data:{ session }, error } =
-await supabaseClient.auth.getSession();
+  if(error || !session){
+    window.location.href="index.html";
+    return;
+  }
 
-if(error || !session){
-
-window.location.href="index.html";
-return;
-
+  currentUser = session.user;
+  await loadOrder();
 }
-
-currentUser = session.user;
-
-await loadOrder();
-
-}
-
 
 /* LOAD ORDER */
 async function loadOrder(){
+  const orderId = getOrderId();
+  if(!orderId){
+    document.getElementById("queueBox").innerHTML = "Invalid order link";
+    return;
+  }
 
-const orderId = getOrderId();
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .eq("id", orderId)
+    .single();
 
-if(!orderId){
+  if(error){
+    document.getElementById("queueBox").innerHTML = "Order not found";
+    return;
+  }
 
-document.getElementById("queueBox").innerHTML =
-"Invalid order link";
+  currentOrder = data;
 
-return;
+  /* SHOW QUEUE NUMBER */
+  document.getElementById("queueBox").innerHTML = "Your Queue Number: #" + data.order_number;
 
+  /* SHOW ORDER DETAILS */
+  let items = JSON.parse(data.items);
+  let total = 0;
+  items.forEach(item=>{ total += item.price; });
+
+  document.getElementById("orderInfo").innerHTML = `
+    Total Amount: <b>Ksh ${total}</b><br><br>
+    Payment Status: <b>${data.payment_status}</b>
+  `;
 }
 
-const { data, error } =
-await supabaseClient
-.from("orders")
-.select("*")
-.eq("id", orderId)
-.single();
-
-if(error){
-
-document.getElementById("queueBox").innerHTML =
-"Order not found";
-
-return;
-
-}
-
-currentOrder = data;
-
-
-/* SHOW QUEUE NUMBER */
-document.getElementById("queueBox").innerHTML =
-"Your Queue Number: #" + data.order_number;
-
-
-/* SHOW ORDER DETAILS */
-let items =
-JSON.parse(data.items);
-
-let total = 0;
-
-items.forEach(item=>{
-total += item.price;
-});
-
-document.getElementById("orderInfo").innerHTML = `
-Total Amount: <b>Ksh ${total}</b><br><br>
-Payment Status: <b>${data.payment_status}</b>
-`;
-
-}
-
-
-/* CONFIRM PAYMENT */
+/* SIMULATED PAYMENT FUNCTION */
 async function confirmPayment(){
+  if(!currentOrder){
+    showMessage("Order not loaded yet","error");
+    return;
+  }
 
-if(!currentOrder){
+  const btn = document.getElementById("payBtn");
+  btn.disabled = true;
+  btn.innerText = "Processing Payment...";
 
-showMessage(
-"Order not loaded yet",
-"error"
-);
-return;
+  // Step 1: Simulate STK Push
+  showMessage("📲 STK Push sent. Please enter PIN on your phone...","success");
 
+  // Step 2: Wait a few seconds to simulate M-Pesa
+  setTimeout(async () => {
+
+    showMessage("✅ Payment Successful!","success");
+
+    // Update Supabase order payment_status
+    const { error } = await supabaseClient
+      .from("orders")
+      .update({ payment_status:"paid" })
+      .eq("id", currentOrder.id);
+
+    if(error){
+      console.error("Error updating payment:", error);
+      showMessage("Failed to update payment status. Contact admin.","error");
+      btn.disabled = false;
+      btn.innerText = "Pay Now";
+      return;
+    }
+
+    // Redirect to track page after short delay
+    setTimeout(()=>{
+      window.location.href = "track.html?order_number=" + currentOrder.order_number;
+    },2000);
+
+  }, 4000); // 4 seconds to simulate payment
 }
-
-const btn =
-document.getElementById("payBtn");
-
-btn.disabled = true;
-btn.innerText = "Processing...";
-
-
-const { error } =
-await supabaseClient
-.from("orders")
-.update({
-payment_status:"Pending Approval"
-})
-.eq("id", currentOrder.id);
-
-
-if(error){
-
-showMessage(
-error.message,
-"error"
-);
-
-btn.disabled=false;
-btn.innerText="I HAVE PAID";
-
-return;
-
-}
-
-
-/* SUCCESS MESSAGE */
-showMessage(
-"Payment submitted successfully!",
-"success"
-);
-
-
-/* REDIRECT AFTER DELAY */
-setTimeout(()=>{
-
-window.location.href =
-"track.html?order_number=" +
-currentOrder.order_number;
-
-},2000);
-
-}
-
 
 /* BUTTON EVENT */
-document
-.getElementById("payBtn")
-.addEventListener("click", confirmPayment);
-
+document.getElementById("payBtn").addEventListener("click", confirmPayment);
 
 /* START */
 init();

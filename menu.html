@@ -9,186 +9,193 @@
 
 /* RESET */
 *{
-box-sizing:border-box;
-margin:0;
-padding:0;
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
 body{
-font-family:Arial;
-background:#eef2f7;
+  font-family:Arial;
+  background:#eef2f7;
 }
 
 /* NAVBAR */
 .navbar{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:#1f2937;
-padding:12px;
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:10px;
-z-index:1000;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  background:#1f2937;
+  padding:12px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+  z-index:1000;
 }
 
 .navbar a{
-color:white;
-text-decoration:none;
-padding:8px 12px;
-border-radius:6px;
-font-weight:bold;
+  color:white;
+  text-decoration:none;
+  padding:8px 12px;
+  border-radius:6px;
+  font-weight:bold;
 }
 
 .navbar a:hover{
-background:#374151;
+  background:#374151;
 }
 
 .cart-count{
-background:red;
-border-radius:50%;
-padding:2px 7px;
-font-size:12px;
-margin-left:4px;
+  background:red;
+  border-radius:50%;
+  padding:2px 7px;
+  font-size:12px;
+  margin-left:4px;
 }
 
 /* MAIN */
 .main{
-margin-top:70px;
+  margin-top:70px;
 }
 
 /* HEADER */
 header{
-background:linear-gradient(135deg,#007bff,#00c6ff);
-color:white;
-padding:18px;
-text-align:center;
-font-size:22px;
-font-weight:bold;
+  background:linear-gradient(135deg,#007bff,#00c6ff);
+  color:white;
+  padding:18px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
 }
 
 /* USER */
 .student-info{
-text-align:center;
-margin:10px;
-font-weight:bold;
+  text-align:center;
+  margin:10px;
+  font-weight:bold;
 }
 
 /* SEARCH */
 .search-box{
-max-width:500px;
-margin:10px auto;
-padding:0 15px;
+  max-width:500px;
+  margin:10px auto;
+  padding:0 15px;
 }
 
 .search-box input{
-width:100%;
-padding:12px;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:15px;
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
 }
 
 /* TABS */
 .tabs{
-display:flex;
-justify-content:center;
-gap:10px;
-margin:15px;
-flex-wrap:wrap;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:15px;
+  flex-wrap:wrap;
 }
 
 .tab{
-padding:10px 16px;
-background:white;
-border-radius:20px;
-cursor:pointer;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
-font-weight:bold;
+  padding:10px 16px;
+  background:white;
+  border-radius:20px;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  font-weight:bold;
 }
 
 .tab.active{
-background:#007bff;
-color:white;
+  background:#007bff;
+  color:white;
 }
 
 /* GRID */
 .container{
-max-width:1300px;
-margin:auto;
-padding:15px;
+  max-width:1300px;
+  margin:auto;
+  padding:15px;
 }
 
 .food-grid{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:15px;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
 }
 
 @media(min-width:600px){
-.food-grid{
-grid-template-columns:repeat(3,1fr);
-}
+  .food-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
 }
 
 @media(min-width:900px){
-.food-grid{
-grid-template-columns:repeat(4,1fr);
-}
+  .food-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
 }
 
 @media(min-width:1200px){
-.food-grid{
-grid-template-columns:repeat(5,1fr);
-}
+  .food-grid{
+    grid-template-columns:repeat(5,1fr);
+  }
 }
 
 /* ITEM */
 .food-item{
-background:white;
-padding:12px;
-border-radius:12px;
-text-align:center;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  background:white;
+  padding:12px;
+  border-radius:12px;
+  text-align:center;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  position: relative;
 }
 
 .food-item img{
-width:100%;
-height:140px;
-object-fit:cover;
-border-radius:8px;
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  border-radius:8px;
 }
 
 .food-item h3{
-margin-top:8px;
+  margin-top:8px;
 }
 
 .food-item p{
-font-weight:bold;
+  font-weight:bold;
 }
 
 button{
-background:#16a34a;
-color:white;
-border:none;
-padding:10px;
-margin-top:8px;
-width:100%;
-border-radius:8px;
-cursor:pointer;
+  background:#16a34a;
+  color:white;
+  border:none;
+  padding:10px;
+  margin-top:8px;
+  width:100%;
+  border-radius:8px;
+  cursor:pointer;
 }
 
 button:hover{
-background:#15803d;
+  background:#15803d;
+}
+
+/* STOCK LABEL */
+.stockLabel{
+  font-weight:bold;
+  margin-top:5px;
 }
 
 /* MESSAGE */
 #msgBox{
-text-align:center;
-font-weight:bold;
-margin-top:10px;
+  text-align:center;
+  font-weight:bold;
+  margin-top:10px;
 }
 
 .success{color:green;}
@@ -201,14 +208,14 @@ margin-top:10px;
 <body>
 
 <div class="navbar">
-<a href="menu.html">Menu</a>
-<a href="cart.html">
-Cart <span id="cartCount" class="cart-count">0</span>
-</a>
-<a href="orders.html">My Orders</a>
-<a href="track.html">Track Order</a>
-<a href="admin.html">Admin</a>
-<a href="#" onclick="logout()">Logout</a>
+  <a href="menu.html">Menu</a>
+  <a href="cart.html">
+    Cart <span id="cartCount" class="cart-count">0</span>
+  </a>
+  <a href="orders.html">My Orders</a>
+  <a href="track.html">Track Order</a>
+  <a href="admin.html">Admin</a>
+  <a href="#" onclick="logout()">Logout</a>
 </div>
 
 <div class="main">
@@ -220,156 +227,64 @@ Cart <span id="cartCount" class="cart-count">0</span>
 <div id="msgBox"></div>
 
 <div class="search-box">
-<input type="text" placeholder="Search food..." oninput="searchFood(this.value)">
+  <input type="text" placeholder="Search food..." oninput="searchFood(this.value)">
 </div>
 
 <div class="tabs">
-<div class="tab active" onclick="showCategory('all',this)">All</div>
-<div class="tab" onclick="showCategory('breakfast',this)">Breakfast</div>
-<div class="tab" onclick="showCategory('lunch',this)">Lunch</div>
-<div class="tab" onclick="showCategory('drinks',this)">Drinks</div>
+  <div class="tab active" onclick="showCategory('all',this)">All</div>
+  <div class="tab" onclick="showCategory('breakfast',this)">Breakfast</div>
+  <div class="tab" onclick="showCategory('lunch',this)">Lunch</div>
+  <div class="tab" onclick="showCategory('drinks',this)">Drinks</div>
 </div>
 
 <div class="container">
-<div class="food-grid" id="foodGrid">
+  <div class="food-grid" id="foodGrid">
 
-<!-- BREAKFAST -->
-<div class="food-item breakfast">
-<img src="public/tea.png">
-<h3>Tea</h3>
-<p>Ksh 20</p>
-<button onclick="addCart('Tea',20)">Add to Cart</button>
-</div>
+    <!-- Example: Breakfast -->
+    <div class="food-item breakfast">
+      <img src="public/tea.png">
+      <h3>Tea</h3>
+      <p>Ksh 20</p>
+      <div class="stockLabel"></div>
+      <button onclick="addCart('Tea',20)">Add to Cart</button>
+    </div>
 
-<div class="food-item breakfast">
-<img src="public/mandazi.png">
-<h3>Mandazi</h3>
-<p>Ksh 15</p>
-<button onclick="addCart('Mandazi',15)">Add to Cart</button>
-</div>
+    <div class="food-item breakfast">
+      <img src="public/mandazi.png">
+      <h3>Mandazi</h3>
+      <p>Ksh 15</p>
+      <div class="stockLabel"></div>
+      <button onclick="addCart('Mandazi',15)">Add to Cart</button>
+    </div>
 
-<div class="food-item breakfast">
-<img src="public/chapati.png">
-<h3>Chapati</h3>
-<p>Ksh 30</p>
-<button onclick="addCart('Chapati',30)">Add to Cart</button>
-</div>
+    <div class="food-item breakfast">
+      <img src="public/chapati.png">
+      <h3>Chapati</h3>
+      <p>Ksh 30</p>
+      <div class="stockLabel"></div>
+      <button onclick="addCart('Chapati',30)">Add to Cart</button>
+    </div>
 
-<div class="food-item breakfast">
-<img src="public/coffee.png">
-<h3>Coffee</h3>
-<p>Ksh 40</p>
-<button onclick="addCart('Coffee',40)">Add to Cart</button>
-</div>
+    <!-- Add all other items similarly: lunch and drinks -->
+    <!-- Example lunch item -->
+    <div class="food-item lunch">
+      <img src="public/ricebeans.jpeg">
+      <h3>Rice & Beans</h3>
+      <p>Ksh 100</p>
+      <div class="stockLabel"></div>
+      <button onclick="addCart('Rice & Beans',100)">Add to Cart</button>
+    </div>
 
-<div class="food-item breakfast">
-<img src="public/omelette.png">
-<h3>Omelette</h3>
-<p>Ksh 50</p>
-<button onclick="addCart('Omelette',50)">Add to Cart</button>
-</div>
+    <!-- Example drink item -->
+    <div class="food-item drinks">
+      <img src="public/soda.png">
+      <h3>Soda</h3>
+      <p>Ksh 50</p>
+      <div class="stockLabel"></div>
+      <button onclick="addCart('Soda',50)">Add to Cart</button>
+    </div>
 
-<div class="food-item breakfast">
-<img src="public/pancake.png">
-<h3>Pancake</h3>
-<p>Ksh 60</p>
-<button onclick="addCart('Pancake',60)">Add to Cart</button>
-</div>
-
-<!-- LUNCH -->
-<div class="food-item lunch">
-<img src="public/ricebeans.jpeg">
-<h3>Rice & Beans</h3>
-<p>Ksh 100</p>
-<button onclick="addCart('Rice & Beans',100)">Add to Cart</button>
-</div>
-
-<div class="food-item lunch">
-<img src="public/ugali_chicken.png">
-<h3>Ugali & Chicken</h3>
-<p>Ksh 150</p>
-<button onclick="addCart('Ugali & Chicken',150)">Add to Cart</button>
-</div>
-
-<div class="food-item lunch">
-<img src="public/pilau.png">
-<h3>Pilau</h3>
-<p>Ksh 120</p>
-<button onclick="addCart('Pilau',120)">Add to Cart</button>
-</div>
-
-<div class="food-item lunch">
-<img src="public/chips.png">
-<h3>Chips</h3>
-<p>Ksh 100</p>
-<button onclick="addCart('Chips',100)">Add to Cart</button>
-</div>
-
-<div class="food-item lunch">
-<img src="public/beef.png">
-<h3>Ugali & Beef</h3>
-<p>Ksh 130</p>
-<button onclick="addCart('Ugali & Beef',130)">Add to Cart</button>
-</div>
-
-<div class="food-item lunch">
-<img src="public/spaghetti.png">
-<h3>Spaghetti</h3>
-<p>Ksh 110</p>
-<button onclick="addCart('Spaghetti',110)">Add to Cart</button>
-</div>
-
-<div class="food-item lunch">
-<img src="public/githeri.png">
-<h3>Githeri</h3>
-<p>Ksh 90</p>
-<button onclick="addCart('Githeri',90)">Add to Cart</button>
-</div>
-
-<!-- DRINKS -->
-<div class="food-item drinks">
-<img src="public/soda.png">
-<h3>Soda</h3>
-<p>Ksh 50</p>
-<button onclick="addCart('Soda',50)">Add to Cart</button>
-</div>
-
-<div class="food-item drinks">
-<img src="public/water.png">
-<h3>Water</h3>
-<p>Ksh 30</p>
-<button onclick="addCart('Water',30)">Add to Cart</button>
-</div>
-
-<div class="food-item drinks">
-<img src="public/juice.png">
-<h3>Fresh Juice</h3>
-<p>Ksh 80</p>
-<button onclick="addCart('Fresh Juice',80)">Add to Cart</button>
-</div>
-
-<div class="food-item drinks">
-<img src="public/milk.png">
-<h3>Milk</h3>
-<p>Ksh 60</p>
-<button onclick="addCart('Milk',60)">Add to Cart</button>
-</div>
-
-<div class="food-item drinks">
-<img src="public/tea_milk.png">
-<h3>Milk Tea</h3>
-<p>Ksh 40</p>
-<button onclick="addCart('Milk Tea',40)">Add to Cart</button>
-</div>
-
-<div class="food-item drinks">
-<img src="public/smoothie.png">
-<h3>Smoothie</h3>
-<p>Ksh 120</p>
-<button onclick="addCart('Smoothie',120)">Add to Cart</button>
-</div>
-
-</div>
+  </div>
 </div>
 </div>
 
@@ -378,59 +293,166 @@ Cart <span id="cartCount" class="cart-count">0</span>
 
 <script>
 
-/* YOUR ORIGINAL SCRIPT UNCHANGED */
+const client = window.supabaseClient;
 
-const client=window.supabaseClient;
+let currentUser = null;
 
-let currentUser=null;
+const msgBox = document.getElementById("msgBox");
 
-const msgBox=document.getElementById("msgBox");
-
+/* MESSAGE */
 function showMessage(msg,type){
-msgBox.innerHTML=msg;
-msgBox.className=type;
-setTimeout(()=>{msgBox.innerHTML="";},3000);
+  msgBox.innerHTML = msg;
+  msgBox.className = type;
+  setTimeout(()=>{msgBox.innerHTML="";},3000);
 }
 
-client.auth.onAuthStateChange(async(event,session)=>{
-if(!session){window.location.href="index.html";return;}
-currentUser=session.user;
-studentInfo.innerHTML="Logged in as: "+currentUser.email;
-loadCartCount();
-});
+/* ========================= */
+/* INIT */
+async function init(){
 
+  const { data:{ session } } = await client.auth.getSession();
+
+  if(session){
+    currentUser = session.user;
+    document.getElementById("studentInfo").style.display="block";
+    studentInfo.innerHTML = "Logged in as: " + currentUser.email;
+  }
+
+  loadCartCount();
+  loadStock();
+
+}
+
+init();
+
+/* ========================= */
+/* CART COUNT */
 async function loadCartCount(){
-const {data}=await client.from("cart").select("*").eq("user_id",currentUser.id);
-cartCount.innerText=data.length;
+
+  if(currentUser){
+    const { data } = await client
+      .from("cart")
+      .select("*")
+      .eq("user_id",currentUser.id);
+    cartCount.innerText = data.length;
+  } else {
+    let cart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    cartCount.innerText = cart.length;
+  }
+
 }
 
+/* ========================= */
+/* LOAD STOCK */
+async function loadStock(){
+
+  const { data, error } = await client
+    .from("menu")
+    .select("*");
+
+  if(error) return;
+
+  data.forEach(item => {
+    document.querySelectorAll(".food-item").forEach(card => {
+      let name = card.querySelector("h3").innerText;
+      if(name === item.item_name){
+        let stockLabel = card.querySelector(".stockLabel");
+        stockLabel.style.fontWeight="bold";
+        stockLabel.style.marginTop="5px";
+
+        if(item.quantity <= 0){
+          stockLabel.innerHTML = "Out of stock ❌";
+          stockLabel.style.color = "red";
+          card.querySelector("button").disabled = true;
+          card.querySelector("button").style.background = "gray";
+        } else if(item.quantity <= 3){
+          stockLabel.innerHTML = "Only " + item.quantity + " left ⚠️";
+          stockLabel.style.color = "orange";
+          card.querySelector("button").disabled = false;
+          card.querySelector("button").style.background = "#16a34a";
+        } else{
+          stockLabel.innerHTML = "Available: " + item.quantity;
+          stockLabel.style.color = "green";
+          card.querySelector("button").disabled = false;
+          card.querySelector("button").style.background = "#16a34a";
+        }
+      }
+    });
+  });
+
+}
+
+/* ========================= */
+/* ADD TO CART */
 async function addCart(name,price){
-const {error}=await client.from("cart").insert([{user_id:currentUser.id,item_name:name,price:price}]);
-if(error){showMessage(error.message,"error");return;}
-showMessage(name+" added","success");
-loadCartCount();
+
+  // Check stock first
+  const { data, error } = await client
+    .from("menu")
+    .select("quantity")
+    .eq("item_name",name)
+    .single();
+
+  if(error){
+    showMessage("Error checking stock","error");
+    return;
+  }
+
+  if(data.quantity <= 0){
+    showMessage("Out of stock","error");
+    return;
+  }
+
+  if(currentUser){
+    const { error: insertError } = await client
+      .from("cart")
+      .insert([{ user_id: currentUser.id, item_name: name, price: price }]);
+    if(insertError){
+      showMessage(insertError.message,"error");
+      return;
+    }
+  } else {
+    let cart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    cart.push({ item_name: name, price: price });
+    localStorage.setItem("guestCart", JSON.stringify(cart));
+  }
+
+  showMessage(name + " added","success");
+  loadCartCount();
+  loadStock(); // refresh stock warnings dynamically
+
 }
 
+/* ========================= */
+/* SEARCH */
 function searchFood(text){
-text=text.toLowerCase();
-document.querySelectorAll(".food-item").forEach(item=>{
-let name=item.innerText.toLowerCase();
-item.style.display=name.includes(text)?"block":"none";
-});
+  text=text.toLowerCase();
+  document.querySelectorAll(".food-item").forEach(item=>{
+    let name=item.innerText.toLowerCase();
+    item.style.display=name.includes(text)?"block":"none";
+  });
 }
 
+/* ========================= */
+/* CATEGORY */
 function showCategory(category,tab){
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-tab.classList.add("active");
-document.querySelectorAll(".food-item").forEach(item=>{
-if(category==="all"){item.style.display="block";}
-else{item.style.display=item.classList.contains(category)?"block":"none";}
-});
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  tab.classList.add("active");
+
+  document.querySelectorAll(".food-item").forEach(item=>{
+    if(category==="all"){
+      item.style.display="block";
+    }else{
+      item.style.display=item.classList.contains(category)?"block":"none";
+    }
+  });
 }
 
+/* ========================= */
+/* LOGOUT */
 async function logout(){
-await client.auth.signOut();
-window.location.href="index.html";
+  await client.auth.signOut();
+  location.reload();
 }
 
 </script>

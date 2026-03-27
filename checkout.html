@@ -6,180 +6,49 @@
 <title>Checkout</title>
 
 <style>
-
 /* RESET */
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-}
+*{ box-sizing:border-box; margin:0; padding:0; }
 
 /* BODY */
-body{
-font-family:'Segoe UI',Arial,sans-serif;
-background:linear-gradient(135deg,#eef2f7,#e3e8ee);
-min-height:100vh;
-}
+body{ font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(135deg,#eef2f7,#e3e8ee); min-height:100vh; }
 
 /* NAVBAR */
-.navbar{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-background:#1f2937;
-padding:12px;
-display:flex;
-justify-content:center;
-flex-wrap:wrap;
-gap:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
-z-index:1000;
-}
-
-.navbar a{
-color:white;
-text-decoration:none;
-font-weight:500;
-padding:8px 12px;
-border-radius:6px;
-transition:0.2s;
-}
-
-.navbar a:hover{
-background:#374151;
-}
-
-/* CART COUNT */
-.cart-count{
-background:#ef4444;
-color:white;
-border-radius:50%;
-padding:3px 8px;
-font-size:12px;
-margin-left:5px;
-}
+.navbar{ position:fixed; top:0; left:0; width:100%; background:#1f2937; padding:12px; display:flex; justify-content:center; flex-wrap:wrap; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:1000; }
+.navbar a{ color:white; text-decoration:none; font-weight:500; padding:8px 12px; border-radius:6px; transition:0.2s; }
+.navbar a:hover{ background:#374151; }
+.cart-count{ background:#ef4444; color:white; border-radius:50%; padding:3px 8px; font-size:12px; margin-left:5px; }
 
 /* MAIN */
-.main{
-margin-top:90px;
-padding:15px;
-}
+.main{ margin-top:90px; padding:15px; }
 
 /* CONTAINER */
-.container{
-background:white;
-max-width:420px;
-margin:20px auto;
-padding:25px;
-border-radius:14px;
-box-shadow:
-0 10px 25px rgba(0,0,0,0.08),
-0 4px 10px rgba(0,0,0,0.05);
-animation:fadeIn 0.4s ease;
-}
+.container{ background:white; max-width:420px; margin:20px auto; padding:25px; border-radius:14px; box-shadow:0 10px 25px rgba(0,0,0,0.08),0 4px 10px rgba(0,0,0,0.05); animation:fadeIn 0.4s ease; }
 
 /* TITLE */
-.container h3{
-margin-bottom:15px;
-color:#111827;
-text-align:center;
-}
+.container h3{ margin-bottom:15px; color:#111827; text-align:center; }
 
 /* ORDER SUMMARY */
-#orderSummary{
-background:#f9fafb;
-padding:12px;
-border-radius:8px;
-margin-bottom:15px;
-border:1px solid #e5e7eb;
-}
+#orderSummary{ background:#f9fafb; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #e5e7eb; }
 
 /* INPUTS */
-input, select{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #d1d5db;
-font-size:15px;
-transition:0.2s;
-outline:none;
-}
-
-input:focus, select:focus{
-border-color:#3b82f6;
-box-shadow:0 0 0 2px rgba(59,130,246,0.15);
-}
+input, select{ width:100%; padding:12px; margin-top:10px; border-radius:8px; border:1px solid #d1d5db; font-size:15px; transition:0.2s; outline:none; }
+input:focus, select:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.15); }
 
 /* BUTTON */
-button{
-width:100%;
-padding:14px;
-margin-top:15px;
-background:linear-gradient(135deg,#16a34a,#15803d);
-color:white;
-border:none;
-cursor:pointer;
-border-radius:8px;
-font-size:16px;
-font-weight:600;
-transition:0.2s;
-}
-
-button:hover{
-transform:translateY(-1px);
-box-shadow:0 4px 12px rgba(0,0,0,0.15);
-}
-
-button:disabled{
-background:#9ca3af;
-cursor:not-allowed;
-transform:none;
-box-shadow:none;
-}
+button{ width:100%; padding:14px; margin-top:15px; background:linear-gradient(135deg,#16a34a,#15803d); color:white; border:none; cursor:pointer; border-radius:8px; font-size:16px; font-weight:600; transition:0.2s; }
+button:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+button:disabled{ background:#9ca3af; cursor:not-allowed; transform:none; box-shadow:none; }
 
 /* MESSAGE BOX */
-#msgBox{
-text-align:center;
-margin-bottom:10px;
-font-weight:600;
-min-height:20px;
-}
-
-.success{
-color:#16a34a;
-}
-
-.error{
-color:#dc2626;
-}
+#msgBox{ text-align:center; margin-bottom:10px; font-weight:600; min-height:20px; }
+.success{ color:#16a34a; }
+.error{ color:#dc2626; }
 
 /* ANIMATION */
-@keyframes fadeIn{
-from{
-opacity:0;
-transform:translateY(10px);
-}
-to{
-opacity:1;
-transform:translateY(0);
-}
-}
+@keyframes fadeIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
 
 /* MOBILE */
-@media(max-width:480px){
-
-.container{
-margin:10px;
-padding:20px;
-}
-
-.navbar{
-padding:10px;
-}
-
-}
+@media(max-width:480px){ .container{ margin:10px; padding:20px; } .navbar{ padding:10px; } }
 
 </style>
 </head>
@@ -207,200 +76,188 @@ padding:10px;
 
 <input type="text" id="name" placeholder="Student Name" required>
 <input type="text" id="phone" placeholder="Phone Number" required>
-<label for="time" >pickup_time</label>
-<input type="time" id="time" required placeholder="pickup_time">
+<label for="time">Pickup Time</label>
+<input type="time" id="time" required>
 
 <select id="payment" required>
 <option value="">Payment Method</option>
 <option value="Mpesa">Mpesa</option>
 </select>
 
-<button type="submit" id="payBtn">
-Make Payment
-</button>
+<button type="submit" id="payBtn">Proceed to Payment</button>
 
 </form>
 
 </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
 <script>
-
 const supabaseClient = window.supabaseClient;
-
 let currentUser = null;
 let cart = [];
 
-const msgBox =
-document.getElementById("msgBox");
+const msgBox = document.getElementById("msgBox");
 
-
-/* MESSAGE FUNCTION */
+/* MESSAGE */
 function showMessage(message,type){
-
-msgBox.innerHTML=message;
-msgBox.className=type;
-
+  msgBox.innerHTML = message;
+  msgBox.className = type;
 }
-
 
 /* INIT */
 async function init(){
+  const { data:{ session } } = await supabaseClient.auth.getSession();
+  if(!session){ window.location.href="index.html"; return; }
+  currentUser = session.user;
 
-const { data:{ session } } =
-await supabaseClient.auth.getSession();
+  // ✅ LOAD FROM LOCAL STORAGE
+  let savedCart = localStorage.getItem("cartData");
+  if(savedCart){
+    cart = JSON.parse(savedCart);
+  }
 
-if(!session){
-
-window.location.href="index.html";
-return;
-
-}
-
-currentUser = session.user;
-
-loadCart();
-
+  displaySummary();
 }
 
 init();
 
-
-document
-.getElementById("checkoutForm")
-.addEventListener("submit", placeOrder);
-
-
-/* LOAD CART */
-async function loadCart(){
-
-const { data, error } =
-await supabaseClient
-.from("cart")
-.select("*")
-.eq("user_id", currentUser.id);
-
-if(error){
-
-showMessage(error.message,"error");
-return;
-
-}
-
-cart = data;
-
-document.getElementById("cartCount").innerText =
-cart.length;
-
-displaySummary();
-
-}
-
-
-/* DISPLAY SUMMARY */
+/* DISPLAY SUMMARY (WITH QUANTITY) */
 function displaySummary(){
+  let total = 0;
+  let html = "";
 
-let total = 0;
-let html = "";
+  cart.forEach(item => {
+    let itemTotal = item.price * item.quantity;
+    total += itemTotal;
 
-cart.forEach(item=>{
+    html += `<p>${item.item_name} - Ksh ${item.price} x ${item.quantity}</p>`;
+  });
 
-total += item.price;
+  html += `<hr><strong>Total: Ksh ${total}</strong>`;
 
-html += `<p>${item.item_name} - Ksh ${item.price}</p>`;
+  document.getElementById("orderSummary").innerHTML = html;
+}
+
+/* PLACE ORDER */
+document.getElementById("checkoutForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  if(payment.value !== "Mpesa"){
+    showMessage("Please select Mpesa to proceed","error");
+    return;
+  }
+
+  const btn = document.getElementById("payBtn");
+  btn.disabled = true;
+  btn.innerText = "Processing...";
+
+  /* ========================= */
+  /* 🔥 STOCK VALIDATION */
+  /* ========================= */
+
+  for(let item of cart){
+
+    const { data, error } = await supabaseClient
+      .from("menu")
+      .select("quantity")
+      .eq("item_name", item.item_name)
+      .single();
+
+    if(error){
+      showMessage("Error checking stock","error");
+      btn.disabled=false;
+      return;
+    }
+
+    if(item.quantity > data.quantity){
+      showMessage(item.item_name + " not enough in stock","error");
+      btn.disabled=false;
+      return;
+    }
+
+  }
+
+  /* ========================= */
+  /* 🔥 INSERT ORDER */
+  /* ========================= */
+
+  const { data: orderData, error } = await supabaseClient
+    .from("orders")
+    .insert([{
+      user_id: currentUser.id,
+      student_name: name.value,
+      phone: phone.value,
+      pickup_time: time.value,
+      payment_method: payment.value,
+      items: JSON.stringify(cart),
+      status:"Waiting",
+      payment_status:"Pending"
+    }])
+    .select("id, order_number")
+    .single();
+
+  if(error){
+    showMessage(error.message,"error");
+    btn.disabled=false;
+    btn.innerText="Proceed to Payment";
+    return;
+  }
+
+  /* ========================= */
+  /* 🔥 REDUCE STOCK */
+  /* ========================= */
+
+  for (let item of cart) {
+
+    const { data: menuItem } = await supabaseClient
+      .from("menu")
+      .select("quantity")
+      .eq("item_name", item.item_name)
+      .single();
+
+    let newQty = menuItem.quantity - item.quantity;
+    if(newQty < 0) newQty = 0;
+
+    await supabaseClient
+      .from("menu")
+      .update({ quantity: newQty })
+      .eq("item_name", item.item_name);
+
+  }
+
+  /* ========================= */
+  /* 🔥 CLEAR CART */
+  /* ========================= */
+
+  await supabaseClient
+    .from("cart")
+    .delete()
+    .eq("user_id", currentUser.id);
+
+  localStorage.removeItem("cartData");
+
+  showMessage("Order placed! Queue Number: #" + orderData.order_number,"success");
+
+  /* ========================= */
+  /* 🔥 REDIRECT TO PAYMENT */
+  /* ========================= */
+
+  setTimeout(()=>{
+    window.location.href =
+      "payment.html?order_id=" + orderData.id +
+      "&order_number=" + orderData.order_number;
+  },2000);
 
 });
 
-html += `<hr><strong>Total: Ksh ${total}</strong>`;
-
-document.getElementById("orderSummary").innerHTML = html;
-
-}
-
-
-/* PLACE ORDER */
-async function placeOrder(event){
-
-event.preventDefault();
-
-const btn =
-document.getElementById("payBtn");
-
-btn.disabled = true;
-btn.innerText = "Processing...";
-
-
-const { data, error } =
-await supabaseClient
-.from("orders")
-.insert([{
-
-user_id: currentUser.id,
-student_name: name.value,
-phone: phone.value,
-pickup_time: time.value,
-payment_method: payment.value,
-items: JSON.stringify(cart),
-status:"Waiting",
-payment_status:"Pending"
-
-}])
-.select("id, order_number")
-.single();
-
-
-if(error){
-
-showMessage(error.message,"error");
-
-btn.disabled=false;
-btn.innerText="Make Payment";
-
-return;
-
-}
-
-
-/* SHOW QUEUE NUMBER */
-showMessage(
-"Order placed successfully! Your Queue Number is #" +
-data.order_number,
-"success"
-);
-
-
-/* CLEAR CART */
-await supabaseClient
-.from("cart")
-.delete()
-.eq("user_id", currentUser.id);
-
-
-/* REDIRECT AFTER 2 SECONDS */
-setTimeout(()=>{
-
-window.location.href =
-"payment.html?order_id=" + data.id +
-"&order_number=" + data.order_number;
-
-},2000);
-
-}
-
-
 /* LOGOUT */
 async function logout(){
-
-await supabaseClient.auth.signOut();
-
-window.location.href="index.html";
-
+  await supabaseClient.auth.signOut();
+  window.location.href="index.html";
 }
-
 </script>
 
 </body>
