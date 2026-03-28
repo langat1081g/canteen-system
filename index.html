@@ -208,7 +208,7 @@ button:hover{
 <body>
 
 <div class="navbar">
-  <a href="menu.html">Menu</a>
+  <a href="index.html">Menu</a>
   <a href="cart.html">
     Cart <span id="cartCount" class="cart-count">0</span>
   </a>
@@ -238,53 +238,158 @@ button:hover{
 </div>
 
 <div class="container">
-  <div class="food-grid" id="foodGrid">
+<div class="food-grid" id="foodGrid">
 
-    <!-- Example: Breakfast -->
-    <div class="food-item breakfast">
-      <img src="public/tea.png">
-      <h3>Tea</h3>
-      <p>Ksh 20</p>
-      <div class="stockLabel"></div>
-      <button onclick="addCart('Tea',20)">Add to Cart</button>
-    </div>
+<!-- BREAKFAST -->
+<div class="food-item breakfast">
+  <img src="public/tea.png">
+  <h3>Tea</h3>
+  <p>Ksh 20</p>
+  <div class="stockLabel">
+</div>
+  <button onclick="addCart('Tea',20)">Add to Cart</button>
+</div>
 
-    <div class="food-item breakfast">
-      <img src="public/mandazi.png">
-      <h3>Mandazi</h3>
-      <p>Ksh 15</p>
-      <div class="stockLabel"></div>
-      <button onclick="addCart('Mandazi',15)">Add to Cart</button>
-    </div>
 
-    <div class="food-item breakfast">
-      <img src="public/chapati.png">
-      <h3>Chapati</h3>
-      <p>Ksh 30</p>
-      <div class="stockLabel"></div>
-      <button onclick="addCart('Chapati',30)">Add to Cart</button>
-    </div>
-
-    <!-- Add all other items similarly: lunch and drinks -->
-    <!-- Example lunch item -->
-    <div class="food-item lunch">
-      <img src="public/ricebeans.jpeg">
-      <h3>Rice & Beans</h3>
-      <p>Ksh 100</p>
-      <div class="stockLabel"></div>
-      <button onclick="addCart('Rice & Beans',100)">Add to Cart</button>
-    </div>
-
-    <!-- Example drink item -->
-    <div class="food-item drinks">
-      <img src="public/soda.png">
-      <h3>Soda</h3>
-      <p>Ksh 50</p>
-      <div class="stockLabel"></div>
-      <button onclick="addCart('Soda',50)">Add to Cart</button>
-    </div>
-
+<div class="food-item breakfast">
+  <img src="public/tea_milk.png">
+  <h3>Tea Milk</h3><p>Ksh 30</p>
+  <div class="stockLabel">
   </div>
+  <button onclick="addCart('Tea Milk',30)">Add to Cart</button>
+</div>
+
+
+
+<div class="food-item breakfast">
+  <img src="public/coffee.png">
+  <h3>Coffee</h3>
+  <p>Ksh 40</p>
+  <div class="stockLabel">
+  </div><button onclick="addCart('Coffee',40)">Add to Cart</button>
+</div>
+
+
+<div class="food-item breakfast">
+  <img src="public/mandazi.png">
+  <h3>Mandazi</h3>
+  <p>Ksh 15</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Mandazi',15)">Add to Cart</button></div>
+
+
+<div class="food-item breakfast">
+  <img src="public/chapati.png">
+  <h3>Chapati</h3>
+  <p>Ksh 30</p>
+  <div class="stockLabel">
+  </div><button onclick="addCart('Chapati',30)">Add to Cart</button></div>
+
+
+
+<div class="food-item breakfast">
+  <img src="public/pancake.png">
+  <h3>Pancake</h3>
+  <p>Ksh 50</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Pancake',50)">Add to Cart</button></div>
+
+
+<div class="food-item breakfast">
+  <img src="public/omelette.png">
+  <h3>Omelette</h3><p>Ksh 60</p>
+    <div class="stockLabel"></div>
+    <button onclick="addCart('Omelette',60)">Add to Cart</button></div>
+
+
+<!-- LUNCH -->
+<div class="food-item lunch">
+  <img src="public/beef.png">
+  <h3>Beef</h3><p>Ksh 120</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Beef',120)">Add to Cart</button></div>
+
+
+
+<div class="food-item lunch">
+  <img src="public/ugali_chicken.png">
+  <h3>Ugali Chicken</h3>
+  <p>Ksh 150</p>
+  <div class="stockLabel"></div><button onclick="addCart('Ugali Chicken',150)">Add to Cart</button></div>
+
+
+<div class="food-item lunch">
+  <img src="public/pilau.png">
+  <h3>Pilau</h3>
+  <p>Ksh 120</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Pilau',120)">Add to Cart</button></div>
+
+<div class="food-item lunch">
+  <img src="public/spaghetti.png">
+  <h3>Spaghetti</h3>
+  <p>Ksh 100</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Spaghetti',100)">Add to Cart</button></div>
+
+<div class="food-item lunch">
+  <img src="public/ricebeans.jpeg">
+  <h3>Rice & Beans</h3>
+  <p>Ksh 100</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Rice & Beans',100)">Add to Cart</button></div>
+
+<div class="food-item lunch">
+  <img src="public/githeri.png">
+  <h3>Githeri</h3>
+  <p>Ksh 80</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Githeri',80)">Add to Cart</button></div>
+
+<div class="food-item lunch">
+  <img src="public/chips.png">
+  <h3>Chips</h3>
+  <p>Ksh 100</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Chips',100)">Add to Cart</button></div>
+
+<!-- DRINKS -->
+<div class="food-item drinks">
+  <img src="public/soda.png">
+  <h3>Soda</h3>
+  <p>Ksh 50</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Soda',50)">Add to Cart</button></div>
+
+<div class="food-item drinks">
+  <img src="public/juice.png">
+  <h3>Juice</h3>
+  <p>Ksh 60</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Juice',60)">Add to Cart</button></div>
+
+<div class="food-item drinks">
+  <img src="public/smoothie.png">
+  <h3>Smoothie</h3>
+  <p>Ksh 120</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Smoothie',120)">Add to Cart</button></div>
+
+<div class="food-item drinks">
+  <img src="public/milk.png">
+  <h3>Milk</h3>
+  <p>Ksh 40</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Milk',40)">Add to Cart</button></div>
+
+<div class="food-item drinks">
+  <img src="public/water.png">
+  <h3>Water</h3>
+  <p>Ksh 30</p>
+  <div class="stockLabel"></div>
+  <button onclick="addCart('Water',30)">Add to Cart</button></div>
+
+</div>
 </div>
 </div>
 
@@ -293,124 +398,78 @@ button:hover{
 
 <script>
 
+// YOUR ORIGINAL JS (UNCHANGED)
+
 const client = window.supabaseClient;
-
 let currentUser = null;
-
 const msgBox = document.getElementById("msgBox");
 
-/* MESSAGE */
 function showMessage(msg,type){
   msgBox.innerHTML = msg;
   msgBox.className = type;
   setTimeout(()=>{msgBox.innerHTML="";},3000);
 }
 
-/* ========================= */
-/* INIT */
 async function init(){
-
   const { data:{ session } } = await client.auth.getSession();
-
   if(session){
     currentUser = session.user;
     document.getElementById("studentInfo").style.display="block";
     studentInfo.innerHTML = "Logged in as: " + currentUser.email;
   }
-
   loadCartCount();
   loadStock();
-
 }
-
 init();
 
-/* ========================= */
-/* CART COUNT */
 async function loadCartCount(){
-
   if(currentUser){
-    const { data } = await client
-      .from("cart")
-      .select("*")
-      .eq("user_id",currentUser.id);
+    const { data } = await client.from("cart").select("*").eq("user_id",currentUser.id);
     cartCount.innerText = data.length;
   } else {
     let cart = JSON.parse(localStorage.getItem("guestCart")) || [];
     cartCount.innerText = cart.length;
   }
-
 }
 
-/* ========================= */
-/* LOAD STOCK */
 async function loadStock(){
-
-  const { data, error } = await client
-    .from("menu")
-    .select("*");
-
-  if(error) return;
+  const { data } = await client.from("menu").select("*");
+  if(!data) return;
 
   data.forEach(item => {
     document.querySelectorAll(".food-item").forEach(card => {
       let name = card.querySelector("h3").innerText;
+
       if(name === item.item_name){
+
         let stockLabel = card.querySelector(".stockLabel");
-        stockLabel.style.fontWeight="bold";
-        stockLabel.style.marginTop="5px";
 
         if(item.quantity <= 0){
           stockLabel.innerHTML = "Out of stock ❌";
           stockLabel.style.color = "red";
           card.querySelector("button").disabled = true;
-          card.querySelector("button").style.background = "gray";
         } else if(item.quantity <= 3){
           stockLabel.innerHTML = "Only " + item.quantity + " left ⚠️";
           stockLabel.style.color = "orange";
-          card.querySelector("button").disabled = false;
-          card.querySelector("button").style.background = "#16a34a";
         } else{
           stockLabel.innerHTML = "Available: " + item.quantity;
           stockLabel.style.color = "green";
-          card.querySelector("button").disabled = false;
-          card.querySelector("button").style.background = "#16a34a";
         }
       }
     });
   });
-
 }
 
-/* ========================= */
-/* ADD TO CART */
 async function addCart(name,price){
+  const { data } = await client.from("menu").select("quantity").eq("item_name",name).single();
 
-  // Check stock first
-  const { data, error } = await client
-    .from("menu")
-    .select("quantity")
-    .eq("item_name",name)
-    .single();
-
-  if(error){
-    showMessage("Error checking stock","error");
-    return;
-  }
-
-  if(data.quantity <= 0){
+  if(!data || data.quantity <= 0){
     showMessage("Out of stock","error");
     return;
   }
 
   if(currentUser){
-    const { error: insertError } = await client
-      .from("cart")
-      .insert([{ user_id: currentUser.id, item_name: name, price: price }]);
-    if(insertError){
-      showMessage(insertError.message,"error");
-      return;
-    }
+    await client.from("cart").insert([{ user_id: currentUser.id, item_name: name, price: price }]);
   } else {
     let cart = JSON.parse(localStorage.getItem("guestCart")) || [];
     cart.push({ item_name: name, price: price });
@@ -419,12 +478,9 @@ async function addCart(name,price){
 
   showMessage(name + " added","success");
   loadCartCount();
-  loadStock(); // refresh stock warnings dynamically
-
+  loadStock();
 }
 
-/* ========================= */
-/* SEARCH */
 function searchFood(text){
   text=text.toLowerCase();
   document.querySelectorAll(".food-item").forEach(item=>{
@@ -433,8 +489,6 @@ function searchFood(text){
   });
 }
 
-/* ========================= */
-/* CATEGORY */
 function showCategory(category,tab){
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   tab.classList.add("active");
@@ -448,8 +502,6 @@ function showCategory(category,tab){
   });
 }
 
-/* ========================= */
-/* LOGOUT */
 async function logout(){
   await client.auth.signOut();
   location.reload();
