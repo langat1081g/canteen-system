@@ -111,19 +111,15 @@ function showMessage(message,type){
 async function init(){
   const { data:{ session } } = await supabaseClient.auth.getSession();
 
-  // ✅ If not logged in, save cart and redirect to login
   if(!session){
-    let savedCart = localStorage.getItem("cartData");
-    if(savedCart){
-      cart = JSON.parse(savedCart);
-    }
+    let savedCart = localStorage.getItem("cartData") || "[]";
+    localStorage.setItem("cartData", savedCart);
     window.location.href = "login.html?redirect=checkout";
     return;
   }
 
   currentUser = session.user;
 
-  // ✅ LOAD CART FROM LOCAL STORAGE
   let savedCart = localStorage.getItem("cartData");
   if(savedCart){
     cart = JSON.parse(savedCart);
@@ -134,7 +130,7 @@ async function init(){
 
 init();
 
-/* DISPLAY SUMMARY (WITH QUANTITY) */
+/* DISPLAY SUMMARY */
 function displaySummary(){
   let total = 0;
   let html = "";
@@ -142,12 +138,10 @@ function displaySummary(){
   cart.forEach(item => {
     let itemTotal = item.price * item.quantity;
     total += itemTotal;
-
     html += `<p>${item.item_name} - Ksh ${item.price} x ${item.quantity}</p>`;
   });
 
   html += `<hr><strong>Total: Ksh ${total}</strong>`;
-
   document.getElementById("orderSummary").innerHTML = html;
 }
 
@@ -164,49 +158,25 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
   btn.disabled = true;
   btn.innerText = "Processing...";
 
-  /* ========================= */
-  /* 🔥 STOCK VALIDATION & REDUCE STOCK */
-  /* ========================= */
-  for (let item of cart) {
-    // Fetch current stock
-    const { data: menuItem, error: fetchError } = await supabaseClient
+  // Reduce stock for each item
+  for (let item of cart){
+    const { data: updatedItem, error } = await supabaseClient
       .from("menu")
-      .select("quantity")
+      .update({ quantity: item => item.quantity - item.quantity })
       .eq("item_name", item.item_name)
+      .select("quantity")
       .single();
 
-    if(fetchError || !menuItem){
-      showMessage("Error fetching stock for " + item.item_name, "error");
-      btn.disabled = false;
-      btn.innerText = "Proceed to Payment";
-      return;
-    }
-
-    if(menuItem.quantity < item.quantity){
-      showMessage(item.item_name + " not enough in stock", "error");
-      btn.disabled = false;
-      btn.innerText = "Proceed to Payment";
-      return;
-    }
-
-    // Update stock
-    const { error: updateError } = await supabaseClient
-      .from("menu")
-      .update({ quantity: menuItem.quantity - item.quantity })
-      .eq("item_name", item.item_name);
-
-    if(updateError){
-      showMessage("Error updating stock for " + item.item_name, "error");
+    if(error){
+      showMessage("Failed to update stock for " + item.item_name, "error");
       btn.disabled = false;
       btn.innerText = "Proceed to Payment";
       return;
     }
   }
 
-  /* ========================= */
-  /* 🔥 INSERT ORDER */
-  /* ========================= */
-  const { data: orderData, error } = await supabaseClient
+  // Insert order
+  const { data: orderData, error: orderError } = await supabaseClient
     .from("orders")
     .insert([{
       user_id: currentUser.id,
@@ -221,32 +191,22 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
     .select("id, order_number")
     .single();
 
-  if(error){
-    showMessage(error.message,"error");
+  if(orderError){
+    showMessage(orderError.message,"error");
     btn.disabled=false;
     btn.innerText="Proceed to Payment";
     return;
   }
 
-  /* ========================= */ 
-  /* 🔥 CLEAR CART */
-  /* ========================= */
-  await supabaseClient
-    .from("cart")
-    .delete()
-    .eq("user_id", currentUser.id);
-
+  // Clear cart
+  await supabaseClient.from("cart").delete().eq("user_id", currentUser.id);
   localStorage.removeItem("cartData");
 
   showMessage("Order placed! Queue Number: #" + orderData.order_number,"success");
 
-  /* ========================= */
-  /* 🔥 REDIRECT TO PAYMENT */
-  /* ========================= */
+  // Redirect to payment page
   setTimeout(()=>{
-    window.location.href =
-      "payment.html?order_id=" + orderData.id +
-      "&order_number=" + orderData.order_number;
+    window.location.href = "payment.html?order_id=" + orderData.id + "&order_number=" + orderData.order_number;
   },2000);
 
 });
