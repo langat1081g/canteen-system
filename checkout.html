@@ -6,50 +6,25 @@
 <title>Checkout</title>
 
 <style>
-/* RESET */
 *{ box-sizing:border-box; margin:0; padding:0; }
-
-/* BODY */
 body{ font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(135deg,#eef2f7,#e3e8ee); min-height:100vh; }
 
-/* NAVBAR */
-.navbar{ position:fixed; top:0; left:0; width:100%; background:#1f2937; padding:12px; display:flex; justify-content:center; flex-wrap:wrap; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:1000; }
-.navbar a{ color:white; text-decoration:none; font-weight:500; padding:8px 12px; border-radius:6px; transition:0.2s; }
+.navbar{ position:fixed; top:0; left:0; width:100%; background:#1f2937; padding:12px; display:flex; justify-content:center; gap:10px; }
+.navbar a{ color:white; text-decoration:none; padding:8px 12px; border-radius:6px; }
 .navbar a:hover{ background:#374151; }
-.cart-count{ background:#ef4444; color:white; border-radius:50%; padding:3px 8px; font-size:12px; margin-left:5px; }
 
-/* MAIN */
 .main{ margin-top:90px; padding:15px; }
 
-/* CONTAINER */
-.container{ background:white; max-width:420px; margin:20px auto; padding:25px; border-radius:14px; box-shadow:0 10px 25px rgba(0,0,0,0.08),0 4px 10px rgba(0,0,0,0.05); animation:fadeIn 0.4s ease; }
+.container{ background:white; max-width:420px; margin:auto; padding:25px; border-radius:14px; }
 
-/* TITLE */
-.container h3{ margin-bottom:15px; color:#111827; text-align:center; }
+input, select{ width:100%; padding:12px; margin-top:10px; border-radius:8px; border:1px solid #ccc; }
 
-/* ORDER SUMMARY */
-#orderSummary{ background:#f9fafb; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #e5e7eb; }
+button{ width:100%; padding:14px; margin-top:15px; background:#16a34a; color:white; border:none; border-radius:8px; cursor:pointer; }
+button:disabled{ background:gray; }
 
-/* INPUTS */
-input, select{ width:100%; padding:12px; margin-top:10px; border-radius:8px; border:1px solid #d1d5db; font-size:15px; transition:0.2s; outline:none; }
-input:focus, select:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.15); }
-
-/* BUTTON */
-button{ width:100%; padding:14px; margin-top:15px; background:linear-gradient(135deg,#16a34a,#15803d); color:white; border:none; cursor:pointer; border-radius:8px; font-size:16px; font-weight:600; transition:0.2s; }
-button:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
-button:disabled{ background:#9ca3af; cursor:not-allowed; transform:none; box-shadow:none; }
-
-/* MESSAGE BOX */
-#msgBox{ text-align:center; margin-bottom:10px; font-weight:600; min-height:20px; }
-.success{ color:#16a34a; }
-.error{ color:#dc2626; }
-
-/* ANIMATION */
-@keyframes fadeIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
-
-/* MOBILE */
-@media(max-width:480px){ .container{ margin:10px; padding:20px; } .navbar{ padding:10px; } }
-
+#msgBox{ text-align:center; margin-bottom:10px; font-weight:bold; }
+.success{ color:green; }
+.error{ color:red; }
 </style>
 </head>
 
@@ -57,10 +32,8 @@ button:disabled{ background:#9ca3af; cursor:not-allowed; transform:none; box-sha
 
 <div class="navbar">
 <a href="index.html">Menu</a>
-<a href="cart.html">Cart <span id="cartCount" class="cart-count">0</span></a>
+<a href="cart.html">Cart</a>
 <a href="orders.html">My Order</a>
-<a href="track.html">Track Order</a>
-<a href="#" onclick="logout()">Logout</a>
 </div>
 
 <div class="main">
@@ -69,14 +42,11 @@ button:disabled{ background:#9ca3af; cursor:not-allowed; transform:none; box-sha
 <h3>Order Summary</h3>
 
 <div id="msgBox"></div>
-
 <div id="orderSummary"></div>
 
 <form id="checkoutForm">
-
 <input type="text" id="name" placeholder="Student Name" required>
-<input type="text" id="phone" placeholder="Phone Number" required>
-<label for="time">Pickup Time</label>
+<input type="text" id="phone" placeholder="2547XXXXXXXX" required>
 <input type="time" id="time" required>
 
 <select id="payment" required>
@@ -84,8 +54,7 @@ button:disabled{ background:#9ca3af; cursor:not-allowed; transform:none; box-sha
 <option value="Mpesa">Mpesa</option>
 </select>
 
-<button type="submit" id="payBtn">Proceed to Payment</button>
-
+<button type="submit" id="payBtn">Pay Now</button>
 </form>
 
 </div>
@@ -101,11 +70,9 @@ let cart = [];
 
 const msgBox = document.getElementById("msgBox");
 
-/* MESSAGE */
 function showMessage(message,type){
   msgBox.innerHTML = message;
   msgBox.className = type;
-  setTimeout(()=>{ msgBox.innerHTML=""; },3000);
 }
 
 /* INIT */
@@ -113,8 +80,7 @@ async function init(){
   const { data:{ session } } = await supabaseClient.auth.getSession();
 
   if(!session){
-    localStorage.setItem("cartData", JSON.stringify(cart));
-    window.location.href = "login.html?redirect=checkout";
+    window.location.href = "login.html";
     return;
   }
 
@@ -127,17 +93,16 @@ async function init(){
 
   displaySummary();
 }
-
 init();
 
-/* DISPLAY SUMMARY */
+/* DISPLAY */
 function displaySummary(){
   let total = 0;
   let html = "";
 
-  cart.forEach(item => {
-    let itemTotal = item.price * item.quantity;
-    total += itemTotal;
+  cart.forEach(item=>{
+    let t = item.price * item.quantity;
+    total += t;
     html += `<p>${item.item_name} - Ksh ${item.price} x ${item.quantity}</p>`;
   });
 
@@ -145,97 +110,74 @@ function displaySummary(){
   document.getElementById("orderSummary").innerHTML = html;
 }
 
-/* PLACE ORDER */
+/* SUBMIT */
 document.getElementById("checkoutForm").addEventListener("submit", async function(e){
   e.preventDefault();
-
-  if(payment.value !== "Mpesa"){
-    showMessage("Please select Mpesa to proceed","error");
-    return;
-  }
 
   const btn = document.getElementById("payBtn");
   btn.disabled = true;
   btn.innerText = "Processing...";
 
-  // ✅ STOCK REDUCTION FIX
-  for (let item of cart){
-    const { data: menuItem, error: fetchError } = await supabaseClient
-      .from("menu")
-      .select("quantity")
-      .eq("item_name", item.item_name)
+  const totalAmount = cart.reduce((t,i)=> t + i.price*i.quantity,0);
+
+  try{
+
+    // ✅ SAVE ORDER
+    const { data: orderData, error } = await supabaseClient
+      .from("orders")
+      .insert([{
+        user_id: currentUser.id,
+        student_name: name.value,
+        phone: phone.value,
+        pickup_time: time.value,
+        payment_method: "Mpesa",
+        items: JSON.stringify(cart),
+        status:"Waiting",
+        payment_status:"Pending"
+      }])
+      .select("id, order_number")
       .single();
 
-    if(fetchError || !menuItem){
-      showMessage("Failed to fetch stock for " + item.item_name, "error");
-      btn.disabled = false;
-      btn.innerText = "Proceed to Payment";
-      return;
+    if(error){
+      throw error;
     }
 
-    if(menuItem.quantity < item.quantity){
-      showMessage("Not enough stock for " + item.item_name, "error");
-      btn.disabled = false;
-      btn.innerText = "Proceed to Payment";
-      return;
-    }
+    // ✅ CALL M-PESA
+    showMessage("Sending payment request...", "success");
+    btn.innerText = "Sending STK...";
 
-    const { data: updatedItem, error: updateError } = await supabaseClient
-      .from("menu")
-      .update({ quantity: menuItem.quantity - item.quantity })
-      .eq("item_name", item.item_name);
+    const response = await fetch("https://canteen-system-backend.onrender.com/stkpush", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        phone: phone.value,
+        amount: totalAmount,
+        order_id: orderData.id
+      })
+    });
 
-    if(updateError){
-      showMessage("Failed to update stock for " + item.item_name, "error");
-      btn.disabled = false;
-      btn.innerText = "Proceed to Payment";
-      return;
-    }
+    const data = await response.json();
+    console.log(data);
+
+    btn.innerText = "Waiting for payment...";
+    showMessage("📲 Check your phone and enter M-Pesa PIN", "success");
+
+    // ✅ CLEAR CART
+    localStorage.removeItem("cartData");
+
+    // ✅ REDIRECT
+    setTimeout(()=>{
+      window.location.href = "track.html?order_number=" + orderData.number;
+    },4000);
+
+  }catch(err){
+    console.error(err);
+    showMessage("Something went wrong ❌", "error");
+    btn.disabled = false;
+    btn.innerText = "Pay Now";
   }
-
-  // ✅ INSERT ORDER
-  const { data: orderData, error } = await supabaseClient
-    .from("orders")
-    .insert([{
-      user_id: currentUser.id,
-      student_name: name.value,
-      phone: phone.value,
-      pickup_time: time.value,
-      payment_method: payment.value,
-      items: JSON.stringify(cart),
-      status:"Waiting",
-      payment_status:"Pending"
-    }])
-    .select("id, order_number")
-    .single();
-
-  if(error){
-    showMessage(error.message,"error");
-    btn.disabled=false;
-    btn.innerText="Proceed to Payment";
-    return;
-  }
-
-  // ✅ CLEAR CART
-  await supabaseClient.from("cart").delete().eq("user_id", currentUser.id);
-  localStorage.removeItem("cartData");
-
-  showMessage("Order placed! Queue Number: #" + orderData.order_number,"success");
-
-  // ✅ REDIRECT TO PAYMENT
-  setTimeout(()=>{
-    window.location.href =
-      "payment.html?order_id=" + orderData.id +
-      "&order_number=" + orderData.order_number;
-  },2000);
 
 });
-
-/* LOGOUT */
-async function logout(){
-  await supabaseClient.auth.signOut();
-  window.location.href="index.html";
-}
 </script>
 
 </body>
