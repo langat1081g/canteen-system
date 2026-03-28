@@ -4,10 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout</title>
+
 <style>
-/* ... your CSS stays the same ... */
+/* RESET */
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+/* BODY */
+body{ font-family:'Segoe UI',Arial,sans-serif; background:linear-gradient(135deg,#eef2f7,#e3e8ee); min-height:100vh; }
+
+/* NAVBAR */
+.navbar{ position:fixed; top:0; left:0; width:100%; background:#1f2937; padding:12px; display:flex; justify-content:center; flex-wrap:wrap; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:1000; }
+.navbar a{ color:white; text-decoration:none; font-weight:500; padding:8px 12px; border-radius:6px; transition:0.2s; }
+.navbar a:hover{ background:#374151; }
+.cart-count{ background:#ef4444; color:white; border-radius:50%; padding:3px 8px; font-size:12px; margin-left:5px; }
+
+/* MAIN */
+.main{ margin-top:90px; padding:15px; }
+
+/* CONTAINER */
+.container{ background:white; max-width:420px; margin:20px auto; padding:25px; border-radius:14px; box-shadow:0 10px 25px rgba(0,0,0,0.08),0 4px 10px rgba(0,0,0,0.05); animation:fadeIn 0.4s ease; }
+
+/* TITLE */
+.container h3{ margin-bottom:15px; color:#111827; text-align:center; }
+
+/* ORDER SUMMARY */
+#orderSummary{ background:#f9fafb; padding:12px; border-radius:8px; margin-bottom:15px; border:1px solid #e5e7eb; }
+
+/* INPUTS */
+input, select{ width:100%; padding:12px; margin-top:10px; border-radius:8px; border:1px solid #d1d5db; font-size:15px; transition:0.2s; outline:none; }
+input:focus, select:focus{ border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,0.15); }
+
+/* BUTTON */
+button{ width:100%; padding:14px; margin-top:15px; background:linear-gradient(135deg,#16a34a,#15803d); color:white; border:none; cursor:pointer; border-radius:8px; font-size:16px; font-weight:600; transition:0.2s; }
+button:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+button:disabled{ background:#9ca3af; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* MESSAGE BOX */
+#msgBox{ text-align:center; margin-bottom:10px; font-weight:600; min-height:20px; }
+.success{ color:#16a34a; }
+.error{ color:#dc2626; }
+
+/* ANIMATION */
+@keyframes fadeIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+
+/* MOBILE */
+@media(max-width:480px){ .container{ margin:10px; padding:20px; } .navbar{ padding:10px; } }
+
 </style>
 </head>
+
 <body>
 
 <div class="navbar">
@@ -24,9 +69,11 @@
 <h3>Order Summary</h3>
 
 <div id="msgBox"></div>
+
 <div id="orderSummary"></div>
 
 <form id="checkoutForm">
+
 <input type="text" id="name" placeholder="Student Name" required>
 <input type="text" id="phone" placeholder="Phone Number" required>
 <label for="time">Pickup Time</label>
@@ -38,6 +85,7 @@
 </select>
 
 <button type="submit" id="payBtn">Proceed to Payment</button>
+
 </form>
 
 </div>
@@ -52,75 +100,101 @@ let currentUser = null;
 let cart = [];
 
 const msgBox = document.getElementById("msgBox");
-function showMessage(message,type){ msgBox.innerHTML = message; msgBox.className = type; }
 
+/* MESSAGE */
+function showMessage(message,type){
+  msgBox.innerHTML = message;
+  msgBox.className = type;
+  setTimeout(()=>{ msgBox.innerHTML=""; },3000);
+}
+
+/* INIT */
 async function init(){
   const { data:{ session } } = await supabaseClient.auth.getSession();
+
   if(!session){
     localStorage.setItem("cartData", JSON.stringify(cart));
     window.location.href = "login.html?redirect=checkout";
     return;
   }
+
   currentUser = session.user;
+
   let savedCart = localStorage.getItem("cartData");
-  if(savedCart) cart = JSON.parse(savedCart);
+  if(savedCart){
+    cart = JSON.parse(savedCart);
+  }
+
   displaySummary();
 }
 
 init();
 
+/* DISPLAY SUMMARY */
 function displaySummary(){
-  let total = 0, html = "";
-  cart.forEach(item=>{
-    let itemTotal = item.price*item.quantity;
-    total+=itemTotal;
+  let total = 0;
+  let html = "";
+
+  cart.forEach(item => {
+    let itemTotal = item.price * item.quantity;
+    total += itemTotal;
     html += `<p>${item.item_name} - Ksh ${item.price} x ${item.quantity}</p>`;
   });
+
   html += `<hr><strong>Total: Ksh ${total}</strong>`;
   document.getElementById("orderSummary").innerHTML = html;
 }
 
+/* PLACE ORDER */
 document.getElementById("checkoutForm").addEventListener("submit", async function(e){
   e.preventDefault();
-  if(payment.value!=="Mpesa"){ showMessage("Please select Mpesa to proceed","error"); return; }
+
+  if(payment.value !== "Mpesa"){
+    showMessage("Please select Mpesa to proceed","error");
+    return;
+  }
 
   const btn = document.getElementById("payBtn");
   btn.disabled = true;
   btn.innerText = "Processing...";
 
-  // ✅ Reduce stock safely for each item
-  for(let item of cart){
-    const { data: menuItem, error: menuError } = await supabaseClient
+  // ✅ STOCK REDUCTION FIX
+  for (let item of cart){
+    const { data: menuItem, error: fetchError } = await supabaseClient
       .from("menu")
       .select("quantity")
       .eq("item_name", item.item_name)
       .single();
 
-    if(menuError || !menuItem){
-      showMessage("Failed to update stock for " + item.item_name,"error");
-      btn.disabled=false; btn.innerText="Proceed to Payment"; return;
+    if(fetchError || !menuItem){
+      showMessage("Failed to fetch stock for " + item.item_name, "error");
+      btn.disabled = false;
+      btn.innerText = "Proceed to Payment";
+      return;
     }
 
-    // Ensure quantity is a number
-    const currentQty = Number(menuItem.quantity);
-    if(currentQty < item.quantity){
-      showMessage("Not enough stock for " + item.item_name,"error");
-      btn.disabled=false; btn.innerText="Proceed to Payment"; return;
+    if(menuItem.quantity < item.quantity){
+      showMessage("Not enough stock for " + item.item_name, "error");
+      btn.disabled = false;
+      btn.innerText = "Proceed to Payment";
+      return;
     }
 
-    const { error: updateError } = await supabaseClient
+    const { data: updatedItem, error: updateError } = await supabaseClient
       .from("menu")
-      .update({ quantity: currentQty - item.quantity })
+      .update({ quantity: menuItem.quantity - item.quantity })
       .eq("item_name", item.item_name);
 
     if(updateError){
-      showMessage("Failed to update stock for " + item.item_name,"error");
-      btn.disabled=false; btn.innerText="Proceed to Payment"; return;
+      showMessage("Failed to update stock for " + item.item_name, "error");
+      btn.disabled = false;
+      btn.innerText = "Proceed to Payment";
+      return;
     }
   }
 
-  // Insert order
-  const { data: orderData, error: orderError } = await supabaseClient
+  // ✅ INSERT ORDER
+  const { data: orderData, error } = await supabaseClient
     .from("orders")
     .insert([{
       user_id: currentUser.id,
@@ -135,27 +209,34 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
     .select("id, order_number")
     .single();
 
-  if(orderError){
-    showMessage(orderError.message,"error");
-    btn.disabled=false; btn.innerText="Proceed to Payment";
+  if(error){
+    showMessage(error.message,"error");
+    btn.disabled=false;
+    btn.innerText="Proceed to Payment";
     return;
   }
 
-  // Clear cart
+  // ✅ CLEAR CART
   await supabaseClient.from("cart").delete().eq("user_id", currentUser.id);
   localStorage.removeItem("cartData");
 
   showMessage("Order placed! Queue Number: #" + orderData.order_number,"success");
 
+  // ✅ REDIRECT TO PAYMENT
   setTimeout(()=>{
-    window.location.href = "payment.html?order_id="+orderData.id+"&order_number="+orderData.order_number;
+    window.location.href =
+      "payment.html?order_id=" + orderData.id +
+      "&order_number=" + orderData.order_number;
   },2000);
+
 });
 
+/* LOGOUT */
 async function logout(){
   await supabaseClient.auth.signOut();
   window.location.href="index.html";
 }
 </script>
+
 </body>
 </html>
