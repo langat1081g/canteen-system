@@ -205,29 +205,27 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
     btn.innerText="Proceed to Payment";
     return;
   }
+/* ========================= */
+/* 🔥 REDUCE STOCK (SAFE) */
+/* ========================= */
 
-  /* ========================= */
-  /* 🔥 REDUCE STOCK */
-  /* ========================= */
+for (let item of cart) {
+  // Atomic stock reduction
+  const { data: updatedItem, error } = await supabaseClient
+    .from("menu")
+    .update({ quantity: supabaseClient.raw('quantity - ?', [item.quantity]) })
+    .eq("item_name", item.item_name)
+    .gt("quantity", item.quantity - 1) // ensures enough stock
+    .select("quantity")
+    .single();
 
-  for (let item of cart) {
-
-    const { data: menuItem } = await supabaseClient
-      .from("menu")
-      .select("quantity")
-      .eq("item_name", item.item_name)
-      .single();
-
-    let newQty = menuItem.quantity - item.quantity;
-    if(newQty < 0) newQty = 0;
-
-    await supabaseClient
-      .from("menu")
-      .update({ quantity: newQty })
-      .eq("item_name", item.item_name);
-
+  if (error || !updatedItem) {
+    showMessage("Not enough stock for " + item.item_name, "error");
+    btn.disabled = false;
+    btn.innerText = "Proceed to Payment";
+    return;
   }
-
+}
   /* ========================= */ 
   /* 🔥 CLEAR CART */
   /* ========================= */

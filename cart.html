@@ -115,12 +115,9 @@ Proceed to Checkout
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 
-
-
 <script>
 
 const client = window.supabaseClient;
-
 let currentUser = null;
 let cart = [];
 
@@ -133,19 +130,30 @@ setTimeout(()=>{msgBox.innerHTML="";},3000);
 }
 
 /* ========================= */
-/* 🔥 INIT (NO FORCE LOGIN) */
+/* 🔥 INIT (LOAD CART AND MERGE LOCALSTORAGE) */
 /* ========================= */
-
 async function init(){
 
-const { data:{ session } } =
-await client.auth.getSession();
+  const { data:{ session } } = await client.auth.getSession();
+  if(session){
+    currentUser = session.user;
 
-if(session){
-currentUser = session.user;
-}
+    // ✅ Merge localStorage cartData with logged-in user cart
+    let savedCart = JSON.parse(localStorage.getItem("cartData")) || [];
+    if(savedCart.length > 0){
+      // Insert saved items to supabase cart for user
+      for(let item of savedCart){
+        await client.from("cart").insert([{
+          user_id: currentUser.id,
+          item_name: item.item_name,
+          price: item.price
+        }]);
+      }
+      localStorage.removeItem("cartData");
+    }
+  }
 
-loadCart();
+  loadCart();
 
 }
 
@@ -154,307 +162,233 @@ init();
 /* ========================= */
 /* 🛒 LOAD CART */
 /* ========================= */
-
 async function loadCart(){
 
-/* LOGGED USER */
-if(currentUser){
+  let data = [];
 
-const { data, error } =
-await client
-.from("cart")
-.select("*")
-.eq("user_id", currentUser.id);
+  /* LOGGED USER */
+  if(currentUser){
+    const { data: dbCart, error } = await client
+      .from("cart")
+      .select("*")
+      .eq("user_id", currentUser.id);
 
-if(error){
-showMessage("Error loading cart","error");
-return;
-}
+    if(error){
+      showMessage("Error loading cart","error");
+      return;
+    }
 
-processCart(data);
+    data = dbCart;
+  }
+  /* GUEST USER */
+  else{
+    data = JSON.parse(localStorage.getItem("guestCart")) || [];
+  }
 
-}
-
-/* GUEST USER */
-else{
-
-let guestCart =
-JSON.parse(localStorage.getItem("guestCart")) || [];
-
-processCart(guestCart);
-
-}
+  processCart(data);
 
 }
 
 /* ========================= */
 /* 🔥 GROUP ITEMS */
 /* ========================= */
-
 function processCart(data){
 
-let grouped = {};
+  let grouped = {};
 
-data.forEach(item=>{
+  data.forEach(item=>{
 
-let name = item.item_name;
+    let name = item.item_name;
 
-if(grouped[name]){
-grouped[name].quantity += 1;
-}else{
-grouped[name] = {
-item_name: name,
-price: item.price,
-quantity: 1
-};
-}
+    if(grouped[name]){
+      grouped[name].quantity += 1;
+    }else{
+      grouped[name] = {
+        item_name: name,
+        price: item.price,
+        quantity: 1
+      };
+    }
 
-});
+  });
 
-cart = Object.values(grouped);
+  cart = Object.values(grouped);
 
-updateCartCount(data.length);
-displayCart();
+  updateCartCount(data.length);
+  displayCart();
 
 }
 
 /* ========================= */
 /* 🔢 CART COUNT */
-/* ========================= */
-
 function updateCartCount(count){
-document.getElementById("cartCount").innerText = count;
+  document.getElementById("cartCount").innerText = count;
 }
 
 /* ========================= */
 /* DISPLAY */
-/* ========================= */
-
 function displayCart(){
 
-let cartList = document.getElementById("cartList");
-let total = 0;
+  let cartList = document.getElementById("cartList");
+  let total = 0;
 
-cartList.innerHTML = "";
+  cartList.innerHTML = "";
 
-if(cart.length === 0){
+  if(cart.length === 0){
+    cartList.innerHTML = "<div class='empty'>Your cart is empty</div>";
+    document.getElementById("totalPrice").innerText = "";
+    return;
+  }
 
-cartList.innerHTML =
-"<div class='empty'>Your cart is empty</div>";
+  cart.forEach(item=>{
 
-document.getElementById("totalPrice").innerText = "";
-return;
+    let itemTotal = item.price * item.quantity;
+    total += itemTotal;
 
-}
+    cartList.innerHTML += `
+    <div class="cart-item">
+      <h3>${item.item_name}</h3>
+      <p>Ksh ${item.price} x ${item.quantity}</p>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <button onclick="decreaseQty('${item.item_name}')">-</button>
+        <button onclick="increaseQty('${item.item_name}')">+</button>
+      </div>
+      <p><b>Total: Ksh ${itemTotal}</b></p>
+      <button class="remove-btn" onclick="removeAll('${item.item_name}')">Remove</button>
+    </div>
+    `;
+  });
 
-cart.forEach(item=>{
-
-let itemTotal = item.price * item.quantity;
-total += itemTotal;
-
-cartList.innerHTML += `
-
-<div class="cart-item">
-
-<h3>${item.item_name}</h3>
-
-<p>Ksh ${item.price} x ${item.quantity}</p>
-
-<div style="display:flex;gap:10px;margin-bottom:10px;">
-<button onclick="decreaseQty('${item.item_name}')">-</button>
-<button onclick="increaseQty('${item.item_name}')">+</button>
-</div>
-
-<p><b>Total: Ksh ${itemTotal}</b></p>
-
-<button class="remove-btn"
-onclick="removeAll('${item.item_name}')">
-Remove
-</button>
-
-</div>
-
-`;
-
-});
-
-document.getElementById("totalPrice").innerText =
-"Total: Ksh " + total;
+  document.getElementById("totalPrice").innerText =
+    "Total: Ksh " + total;
 
 }
 
 /* ========================= */
 /* ➕ INCREASE */
-/* ========================= */
-
 async function increaseQty(name){
 
-// STOCK CHECK
-const { data: stockData } = await client
-.from("menu")
-.select("quantity")
-.eq("item_name",name)
-.single();
+  const { data: stockData } = await client
+    .from("menu")
+    .select("quantity")
+    .eq("item_name",name)
+    .single();
 
-let currentQty =
-cart.find(i=>i.item_name===name).quantity;
+  let currentQty =
+    cart.find(i=>i.item_name===name).quantity;
 
-if(currentQty >= stockData.quantity){
-showMessage("Max stock reached","error");
-return;
-}
+  if(currentQty >= stockData.quantity){
+    showMessage("Max stock reached","error");
+    return;
+  }
 
-/* LOGGED USER */
-if(currentUser){
+  /* LOGGED USER */
+  if(currentUser){
+    await client.from("cart").insert([{
+      user_id: currentUser.id,
+      item_name: name,
+      price: cart.find(i=>i.item_name===name).price
+    }]);
+  }
+  /* GUEST USER */
+  else{
+    let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    guestCart.push({
+      item_name: name,
+      price: cart.find(i=>i.item_name===name).price
+    });
+    localStorage.setItem("guestCart", JSON.stringify(guestCart));
+  }
 
-await client.from("cart").insert([{
-user_id: currentUser.id,
-item_name: name,
-price: cart.find(i=>i.item_name===name).price
-}]);
-
-}
-
-/* GUEST USER */
-else{
-
-let guestCart =
-JSON.parse(localStorage.getItem("guestCart")) || [];
-
-guestCart.push({
-item_name: name,
-price: cart.find(i=>i.item_name===name).price
-});
-
-localStorage.setItem("guestCart", JSON.stringify(guestCart));
-
-}
-
-loadCart();
+  loadCart();
 
 }
 
 /* ========================= */
 /* ➖ DECREASE */
-/* ========================= */
-
 async function decreaseQty(name){
 
-/* LOGGED USER */
-if(currentUser){
+  /* LOGGED USER */
+  if(currentUser){
+    const { data } = await client
+      .from("cart")
+      .select("id")
+      .eq("user_id",currentUser.id)
+      .eq("item_name",name)
+      .limit(1);
 
-const { data } = await client
-.from("cart")
-.select("id")
-.eq("user_id",currentUser.id)
-.eq("item_name",name)
-.limit(1);
+    if(data.length > 0){
+      await client
+        .from("cart")
+        .delete()
+        .eq("id",data[0].id);
+    }
 
-if(data.length > 0){
+  }
+  /* GUEST USER */
+  else{
+    let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    let index = guestCart.findIndex(i=>i.item_name===name);
+    if(index > -1){
+      guestCart.splice(index,1);
+    }
+    localStorage.setItem("guestCart", JSON.stringify(guestCart));
+  }
 
-await client
-.from("cart")
-.delete()
-.eq("id",data[0].id);
-
-}
-
-}
-
-/* GUEST USER */
-else{
-
-let guestCart =
-JSON.parse(localStorage.getItem("guestCart")) || [];
-
-let index =
-guestCart.findIndex(i=>i.item_name===name);
-
-if(index > -1){
-guestCart.splice(index,1);
-}
-
-localStorage.setItem("guestCart", JSON.stringify(guestCart));
-
-}
-
-loadCart();
+  loadCart();
 
 }
 
 /* ========================= */
 /* ❌ REMOVE ALL */
-/* ========================= */
-
 async function removeAll(name){
 
-/* LOGGED USER */
-if(currentUser){
+  if(currentUser){
+    await client.from("cart").delete()
+      .eq("user_id",currentUser.id)
+      .eq("item_name",name);
+  }else{
+    let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    guestCart = guestCart.filter(i=>i.item_name !== name);
+    localStorage.setItem("guestCart", JSON.stringify(guestCart));
+  }
 
-await client
-.from("cart")
-.delete()
-.eq("user_id",currentUser.id)
-.eq("item_name",name);
-
-}
-
-/* GUEST USER */
-else{
-
-let guestCart =
-JSON.parse(localStorage.getItem("guestCart")) || [];
-
-guestCart =
-guestCart.filter(i=>i.item_name !== name);
-
-localStorage.setItem("guestCart", JSON.stringify(guestCart));
-
-}
-
-showMessage("Item removed","success");
-
-loadCart();
+  showMessage("Item removed","success");
+  loadCart();
 
 }
 
 /* ========================= */
 /* 💳 CHECKOUT */
-/* ========================= */
-
 function checkout(){
 
-if(cart.length === 0){
-showMessage("Cart is empty","error");
-return;
-}
+  if(cart.length === 0){
+    showMessage("Cart is empty","error");
+    return;
+  }
 
-/* 🚨 REQUIRE LOGIN HERE ONLY */
-if(!currentUser){
+  /* 🚨 REQUIRE LOGIN */
+  if(!currentUser){
+    localStorage.setItem("cartData", JSON.stringify(cart));
+    showMessage("Login required to place order","error");
+    setTimeout(()=>{
+      window.location.href = "login.html?redirect=checkout";
+    },1500);
+    return;
+  }
 
-localStorage.setItem("cartData", JSON.stringify(cart));
-showMessage("Login required to place order","error");
-setTimeout(()=>{
-  window.location.href = "login.html";
-},1500);
-//window.location.href = "login.html"; // login page
-return;
-
-}
-
-/* LOGGED USER */
-localStorage.setItem("cartData", JSON.stringify(cart));
-window.location.href = "checkout.html";
+  localStorage.setItem("cartData", JSON.stringify(cart));
+  window.location.href = "checkout.html";
 
 }
 
 /* ========================= */
 /* LOGOUT */
-/* ========================= */
-
 async function logout(){
-await client.auth.signOut();
-location.reload();
+  await client.auth.signOut();
+  location.reload();
 }
 
 </script>
+</body>
+</html>
