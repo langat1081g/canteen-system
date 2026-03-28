@@ -122,6 +122,44 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
 
   try{
 
+    // 🔥 STOCK CHECK + REDUCTION
+    for (let item of cart){
+
+      const { data: menuItem, error: fetchError } = await supabaseClient
+        .from("menu")
+        .select("quantity")
+        .eq("item_name", item.item_name)
+        .single();
+
+      if(fetchError || !menuItem){
+        showMessage("Error fetching stock for " + item.item_name, "error");
+        btn.disabled = false;
+        btn.innerText = "Pay Now";
+        return;
+      }
+
+      if(menuItem.quantity < item.quantity){
+        showMessage("Not enough stock for " + item.item_name, "error");
+        btn.disabled = false;
+        btn.innerText = "Pay Now";
+        return;
+      }
+
+      const { error: updateError } = await supabaseClient
+        .from("menu")
+        .update({
+          quantity: menuItem.quantity - item.quantity
+        })
+        .eq("item_name", item.item_name);
+
+      if(updateError){
+        showMessage("Failed to update stock", "error");
+        btn.disabled = false;
+        btn.innerText = "Pay Now";
+        return;
+      }
+    }
+
     // ✅ SAVE ORDER
     const { data: orderData, error } = await supabaseClient
       .from("orders")
@@ -165,7 +203,7 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
     // ✅ CLEAR CART
     localStorage.removeItem("cartData");
 
-    // ✅ CORRECT REDIRECT (FIXED 🔥)
+    // ✅ REDIRECT
     setTimeout(()=>{
       window.location.href = "track.html?order_number=" + orderData.order_number;
     },4000);
