@@ -165,9 +165,9 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
     // ✅ CLEAR CART
     localStorage.removeItem("cartData");
 
-    // ✅ REDIRECT
+    // ✅ CORRECT REDIRECT (FIXED 🔥)
     setTimeout(()=>{
-      window.location.href = "track.html?order_number=" + orderData.number;
+      window.location.href = "track.html?order_number=" + orderData.order_number;
     },4000);
 
   }catch(err){
