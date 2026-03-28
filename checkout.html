@@ -110,10 +110,18 @@ function showMessage(message,type){
 /* INIT */
 async function init(){
   const { data:{ session } } = await supabaseClient.auth.getSession();
-  if(!session){ window.location.href="index.html"; return; }
+
+  // ✅ If not logged in, load guest cart and redirect to login
+  if(!session){
+    let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+    localStorage.setItem("cartData", JSON.stringify(guestCart)); // save current guest cart
+    window.location.href = "login.html?redirect=checkout";
+    return;
+  }
+
   currentUser = session.user;
 
-  // ✅ LOAD FROM LOCAL STORAGE
+  // ✅ LOAD CART FROM LOCAL STORAGE (after login)
   let savedCart = localStorage.getItem("cartData");
   if(savedCart){
     cart = JSON.parse(savedCart);
@@ -155,29 +163,24 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
   btn.innerText = "Processing...";
 
   /* ========================= */
-  /* 🔥 STOCK VALIDATION */
+  /* 🔥 STOCK VALIDATION & REDUCE STOCK (COMBINED SAFE) */
   /* ========================= */
 
-  for(let item of cart){
-
-    const { data, error } = await supabaseClient
+  for (let item of cart) {
+    const { data: updatedItem, error } = await supabaseClient
       .from("menu")
-      .select("quantity")
+      .update({ quantity: supabaseClient.raw('quantity - ?', [item.quantity]) })
       .eq("item_name", item.item_name)
+      .gt("quantity", item.quantity - 1) // ensures enough stock
+      .select("quantity")
       .single();
 
-    if(error){
-      showMessage("Error checking stock","error");
-      btn.disabled=false;
+    if (error || !updatedItem) {
+      showMessage("Not enough stock for " + item.item_name, "error");
+      btn.disabled = false;
+      btn.innerText = "Proceed to Payment";
       return;
     }
-
-    if(item.quantity > data.quantity){
-      showMessage(item.item_name + " not enough in stock","error");
-      btn.disabled=false;
-      return;
-    }
-
   }
 
   /* ========================= */
@@ -205,27 +208,7 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
     btn.innerText="Proceed to Payment";
     return;
   }
-/* ========================= */
-/* 🔥 REDUCE STOCK (SAFE) */
-/* ========================= */
 
-for (let item of cart) {
-  // Atomic stock reduction
-  const { data: updatedItem, error } = await supabaseClient
-    .from("menu")
-    .update({ quantity: supabaseClient.raw('quantity - ?', [item.quantity]) })
-    .eq("item_name", item.item_name)
-    .gt("quantity", item.quantity - 1) // ensures enough stock
-    .select("quantity")
-    .single();
-
-  if (error || !updatedItem) {
-    showMessage("Not enough stock for " + item.item_name, "error");
-    btn.disabled = false;
-    btn.innerText = "Proceed to Payment";
-    return;
-  }
-}
   /* ========================= */ 
   /* 🔥 CLEAR CART */
   /* ========================= */
