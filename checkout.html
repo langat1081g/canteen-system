@@ -111,17 +111,19 @@ function showMessage(message,type){
 async function init(){
   const { data:{ session } } = await supabaseClient.auth.getSession();
 
-  // ✅ If not logged in, load guest cart and redirect to login
+  // ✅ If not logged in, save cart and redirect to login
   if(!session){
-    let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-    localStorage.setItem("cartData", JSON.stringify(guestCart)); // save current guest cart
+    let savedCart = localStorage.getItem("cartData");
+    if(savedCart){
+      cart = JSON.parse(savedCart);
+    }
     window.location.href = "login.html?redirect=checkout";
     return;
   }
 
   currentUser = session.user;
 
-  // ✅ LOAD CART FROM LOCAL STORAGE (after login)
+  // ✅ LOAD CART FROM LOCAL STORAGE
   let savedCart = localStorage.getItem("cartData");
   if(savedCart){
     cart = JSON.parse(savedCart);
@@ -163,20 +165,38 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
   btn.innerText = "Processing...";
 
   /* ========================= */
-  /* 🔥 STOCK VALIDATION & REDUCE STOCK (COMBINED SAFE) */
+  /* 🔥 STOCK VALIDATION & REDUCE STOCK */
   /* ========================= */
-
   for (let item of cart) {
-    const { data: updatedItem, error } = await supabaseClient
+    // Fetch current stock
+    const { data: menuItem, error: fetchError } = await supabaseClient
       .from("menu")
-      .update({ quantity: supabaseClient.raw('quantity - ?', [item.quantity]) })
-      .eq("item_name", item.item_name)
-      .gt("quantity", item.quantity - 1) // ensures enough stock
       .select("quantity")
+      .eq("item_name", item.item_name)
       .single();
 
-    if (error || !updatedItem) {
-      showMessage("Not enough stock for " + item.item_name, "error");
+    if(fetchError || !menuItem){
+      showMessage("Error fetching stock for " + item.item_name, "error");
+      btn.disabled = false;
+      btn.innerText = "Proceed to Payment";
+      return;
+    }
+
+    if(menuItem.quantity < item.quantity){
+      showMessage(item.item_name + " not enough in stock", "error");
+      btn.disabled = false;
+      btn.innerText = "Proceed to Payment";
+      return;
+    }
+
+    // Update stock
+    const { error: updateError } = await supabaseClient
+      .from("menu")
+      .update({ quantity: menuItem.quantity - item.quantity })
+      .eq("item_name", item.item_name);
+
+    if(updateError){
+      showMessage("Error updating stock for " + item.item_name, "error");
       btn.disabled = false;
       btn.innerText = "Proceed to Payment";
       return;
@@ -186,7 +206,6 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
   /* ========================= */
   /* 🔥 INSERT ORDER */
   /* ========================= */
-
   const { data: orderData, error } = await supabaseClient
     .from("orders")
     .insert([{
@@ -212,7 +231,6 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
   /* ========================= */ 
   /* 🔥 CLEAR CART */
   /* ========================= */
-
   await supabaseClient
     .from("cart")
     .delete()
@@ -225,7 +243,6 @@ document.getElementById("checkoutForm").addEventListener("submit", async functio
   /* ========================= */
   /* 🔥 REDIRECT TO PAYMENT */
   /* ========================= */
-
   setTimeout(()=>{
     window.location.href =
       "payment.html?order_id=" + orderData.id +
